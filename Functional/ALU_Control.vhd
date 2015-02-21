@@ -47,7 +47,11 @@ begin
 					-- set on less than
 					when "101010"=>
 						op_reg <= "0111";
+					when others =>
+						op_reg <= "0000";
 				end case;
+			when others =>
+				op_reg <= "0000";
 		end case;
 	end if;
 	end process;
