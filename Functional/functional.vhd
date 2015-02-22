@@ -45,13 +45,13 @@ architecture behaviour of functional is
 			MemWrite		: out std_logic;
 			AluSrc		: out std_logic;
 			RegWrite		: out std_logic;
-			ALUOp			: out std_logic_vector(1 downto 0)
+			ALUOp			: out std_logic_vector(2 downto 0)
 		);
 	end component;
 
 	component ALU_control is
 		port (
-			ALUOp			: in std_logic_vector(1 downto 0);
+			ALUOp			: in std_logic_vector(2 downto 0);
 			funct 		: in std_logic_vector(5 downto 0);
 			operation	: out std_logic_vector(3 downto 0)
 		);
@@ -84,13 +84,12 @@ architecture behaviour of functional is
 	signal memtoReg	: std_logic;
 	signal memWrite	: std_logic;
 	signal aLUSrc		: std_logic;
-	signal aLUOp		: std_logic_vector(1 downto 0);
+	signal aLUOp		: std_logic_vector(2 downto 0);
 	
 	signal operation 	: std_logic_vector(3 downto 0);
 	
 	signal dataa 	: std_logic_vector (31 downto 0);
 	signal datab 	: std_logic_vector (31 downto 0);
-	signal shampt	: std_logic_vector (4  downto 0);
 	signal result 	: std_logic_vector (31 downto 0);
 	signal HI 		: std_logic_vector (31 downto 0);
 	signal LO 		: std_logic_vector (31 downto 0);
