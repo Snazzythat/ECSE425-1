@@ -10,6 +10,7 @@ entity control is
 		clock			: in std_logic;
 		Instruction	: in std_logic_vector(31 downto 26);
 		RegDst		: out std_logic;
+		Jump			: out std_logic;
 		Branch		: out std_logic;
 		MemRead		: out std_logic;
 		MemtoReg		: out std_logic;
@@ -21,72 +22,97 @@ entity control is
 end Control;
 
 architecture behaviour of Control is
-	signal tempRegDst		: std_logic;
-	signal tempBranch		: std_logic;
-	signal tempMemRead	: std_logic;
-	signal tempMemtoReg	: std_logic;
-	signal tempMemWrite	: std_logic;
-	signal tempAluSrc		: std_logic;
-	signal tempRegWrite	: std_logic;
-	signal tempALUOp		: std_logic_vector(1 downto 0);
+	signal RegDst_reg 	: std_logic;
+	signal Jump_reg		: std_logic;
+	signal Branch_reg 	: std_logic;
+	signal MemRead_reg 	: std_logic;
+	signal MemtoReg_reg 	: std_logic;
+	signal MemWrite_reg 	: std_logic;
+	signal AluSrc_reg 	: std_logic;
+	signal RegWrite_reg 	: std_logic;
+	signal ALUOp_reg 		: std_logic_vector(1 downto 0);
 	
 begin
 
 	reg_process: process (clock)
 	begin
 	if (clock'event AND clock = '1') then
+		RegDst_reg 		<= '0';
+		Branch_reg 		<= '0';
+		MemRead_reg 	<= '0';
+		MemtoReg_reg	<= '0';
+		MemWrite_reg	<= '0';
+		AluSrc_reg 		<= '0';
+		RegWrite_reg	<= '0';
+		ALUOp_reg 		<= "00";
 		case Instruction is
 			-- r-format
 			when "000000" =>
-				tempRegDst 		<= '1';
-				tempBranch 		<= '0';
-				tempMemRead 	<= '0';
-				tempMemtoReg 	<= '0';
-				tempMemWrite 	<= '0';
-				tempAluSrc 		<= '0';
-				tempRegWrite 	<= '1';
-				tempALUOp 		<= "10";
+				RegDst_reg 		<= '1';
+				RegWrite_reg	<= '1';
+				ALUOp_reg		<= "10";
+			-- addi
+			when "001000" =>
+				AluSrc_reg 		<= '1';
+				RegWrite_reg	<= '1';
+			-- slti
+			when "001010" =>
+				null;
+			-- andi
+			when "001100" =>
+				null;
+			-- ori
+			when "001101" =>
+				null;
+			-- xori
+			when "001110" =>
+				null;
+			-- lui
+			when "001111" =>
+				null;
 			-- lw
 			when "100011" =>
-				tempRegDst 		<= '0';
-				tempBranch 		<= '0';
-				tempMemRead 	<= '1';
-				tempMemtoReg 	<= '1';
-				tempMemWrite 	<= '0';
-				tempAluSrc 		<= '1';
-				tempRegWrite 	<= '1';
-				tempALUOp 		<= "00";
+				MemRead_reg		<= '1';
+				MemtoReg_reg	<= '1';
+				AluSrc_reg		<= '1';
+				RegWrite_reg	<= '1';
+			-- lb
+			when "100000" =>
+				null;
 			-- sw
 			when "101011" =>
-				tempRegDst 		<= '0';
-				tempBranch 		<= '0';
-				tempMemRead 	<= '0';
-				tempMemtoReg 	<= '0';
-				tempMemWrite 	<= '1';
-				tempAluSrc 		<= '1';
-				tempRegWrite 	<= '0';
-				tempALUOp 		<= "00";
+				MemWrite_reg 	<= '1';
+				AluSrc_reg		<= '1';
+			-- sb
+			when "101000" =>
+				null;
 			-- beq
 			when "000100" =>
-				tempRegDst 		<= '0';
-				tempBranch 		<= '1';
-				tempMemRead 	<= '0';
-				tempMemtoReg 	<= '0';
-				tempMemWrite 	<= '0';
-				tempAluSrc 		<= '0';
-				tempRegWrite 	<= '0';
-				tempALUOp 		<= "01";
+				Branch_reg		<= '1';
+				AluOp_reg		<= "01";
+			-- bne
+			when "000101" =>
+				null;
+			-- j
+			when "000010" =>
+				Jump_reg			<= '1';
+				AluOp_reg		<= "10";
+			-- jal
+			when "000011" =>
+				null;
 			when others =>
+				null;
 		end case;
 	end if;
 	end process;
 	
-	RegDst <= tempRegDst;
-	Branch <= tempBranch;
-	MemRead <= tempMemRead;
-	MemtoReg <= tempMemtoReg;
-	MemWrite <= tempMemWrite;
-	AluSrc <= tempAluSrc;
-	RegWrite <= tempRegWrite;
-	ALUOp <= tempALUOp;
+	RegDst 	<= RegDst_reg;
+	Jump		<= Jump_reg;
+	Branch 	<= Branch_reg;
+	MemRead 	<= MemRead_reg;
+	MemtoReg <= MemtoReg_reg;
+	MemWrite <= MemWrite_reg;
+	AluSrc 	<= AluSrc_reg;
+	RegWrite <= RegWrite_reg;
+	ALUOp 	<= AluOp_reg;
 end behaviour;
