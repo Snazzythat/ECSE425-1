@@ -28,6 +28,7 @@ ARCHITECTURE ARCH OF ALU IS
 	SIGNAL dividerRemainder : STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL aluResult 		: STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL sltResult	 	: STD_LOGIC;
+	SIGNAL add_sub			: STD_LOGIC;
 	
 	
 	-- ADDITION AND SUBSTRACTION
@@ -89,11 +90,12 @@ BEGIN
 	-- OPERATORS --
 	---------------
 	
+	add_sub <= NOT control(2);
 	-- ADDITION AND SUBSTRACTION
 	addAndSubstract : AddSub
 	PORT MAP (
 		dataa => dataa,
-		add_sub => NOT control(2),
+		add_sub => add_sub,
 		datab => datab,
 		result => addSubResult
 	);
@@ -162,6 +164,6 @@ BEGIN
 			dividerResult					WHEN OTHERS;
 			
 	result <= aluResult;
-
+	
 END ARCH;
 
