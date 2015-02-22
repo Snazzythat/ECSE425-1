@@ -10,7 +10,7 @@ entity registers is
 		clock			: in std_logic;
 		read_reg_1	: in std_logic_vector(4 downto 0);
 		read_reg_2	: in std_logic_vector(4 downto 0);
-		write_reg_1	: in std_logic_vector(4 downto 0);
+		write_reg	: in std_logic_vector(4 downto 0);
 		writedata	: in std_logic_vector(31 downto 0);
 		regwrite		: in std_logic;
 		readdata_1	: out std_logic_vector(31 downto 0);
@@ -32,7 +32,7 @@ begin
 	begin		
 		if (clock'event AND clock = '0') then
 			if(regwrite = '1') then
-				regs(to_integer(unsigned(write_reg_1))) <= writedata;
+				regs(to_integer(unsigned(write_reg))) <= writedata;
 			end if;
 		end if;
 	end process;
