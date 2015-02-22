@@ -51,7 +51,7 @@ begin
 						op_reg <= "0000";
 				end case;
 			when others =>
-				op_reg <= "0000";
+				null;
 		end case;
 	end if;
 	end process;
