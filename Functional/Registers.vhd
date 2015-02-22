@@ -26,18 +26,10 @@ architecture behaviour of registers is
 	type MEM is array(reg_width-1 downto 0) OF std_logic_vector(data_width-1 downto 0);
 	signal regs: MEM;
 	
-	signal readdata_1_reg: std_logic_vector(data_width-1 downto 0);
-	signal readdata_2_reg: std_logic_vector(data_width-1 downto 0);
-	
 begin
 
 	reg_process: process (clock)
-	begin
-		if (clock'event AND clock = '1') then
-			readdata_1_reg <= regs(to_integer(unsigned(read_reg_1)));
-			readdata_2_reg <= regs(to_integer(unsigned(read_reg_2)));
-		end if;
-		
+	begin		
 		if (clock'event AND clock = '0') then
 			if(regwrite = '1') then
 				regs(to_integer(unsigned(write_reg_1))) <= writedata;
@@ -45,6 +37,6 @@ begin
 		end if;
 	end process;
 	
-	readdata_1 <= readdata_1_reg;
-	readdata_2 <= readdata_2_reg;
+	readdata_1 <= regs(to_integer(unsigned(read_reg_1)));
+	readdata_2 <= regs(to_integer(unsigned(read_reg_2)));
 end behaviour;
