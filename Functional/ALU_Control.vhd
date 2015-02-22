@@ -26,29 +26,50 @@ begin
 			-- load and store
 			when "00" =>
 				op_reg <= "0010";
-			-- branch equal
+			-- branch equal 
 			when "01" =>
 				op_reg <= "0110";
 			-- R-type
 			when "10" =>
 				case funct is
-					-- add
-					when "100000"=>
-						op_reg <= "0010";
-					-- subtract
-					when "100010"=>
-						op_reg <= "0110";
 					-- AND
 					when "100100"=>
 						op_reg <= "0000";
 					-- OR
 					when "100101"=>
 						op_reg <= "0001";
+					-- add
+					when "100000"=>
+						op_reg <= "0010";
+					-- multiply
+					when "011000"=>
+						op_reg <= "0011";
+					-- divide
+					when "011010"=>
+						op_reg <= "0100";
+					-- subtract
+					when "100010"=>
+						op_reg <= "0110";
 					-- set on less than
 					when "101010"=>
 						op_reg <= "0111";
+					-- shift left logical
+					when "000000"=>
+						op_reg <= "1000";
+					-- shift right logical
+					when "000010"=>
+						op_reg <= "1001";
+					-- shift right arithmetic
+					when "000011"=>
+						op_reg <= "1010";
+					-- NOR
+					when "100111"=>
+						op_reg <= "1100";
+					-- XOR
+					when "100110"=>
+						op_reg <= "1101";
 					when others =>
-						op_reg <= "0000";
+						op_reg <= "1111";
 				end case;
 			when others =>
 				null;
