@@ -7,19 +7,19 @@ entity control is
 		clock_period : time := 1 ns
 	);
 	port (
-		clock			: in std_logic;
+		clock		: in std_logic;
 		Instruction	: in std_logic_vector(31 downto 26);
 		RegDst		: out std_logic;
-		Jump			: out std_logic;
+		Jump		: out std_logic;
 		Branch		: out std_logic;
 		MemRead		: out std_logic;
-		MemtoReg		: out std_logic;
-		MemWrite		: out std_logic;
+		MemtoReg	: out std_logic;
+		MemWrite	: out std_logic;
 		AluSrc		: out std_logic;
-		RegWrite		: out std_logic;
-		ALUOp			: out std_logic_vector(1 downto 0)
+		RegWrite	: out std_logic;
+		ALUOp		: out std_logic_vector(2 downto 0)
 	);
-end Control;
+end control;
 
 architecture behaviour of Control is
 	signal RegDst_reg 	: std_logic;
@@ -30,73 +30,98 @@ architecture behaviour of Control is
 	signal MemWrite_reg 	: std_logic;
 	signal AluSrc_reg 	: std_logic;
 	signal RegWrite_reg 	: std_logic;
-	signal ALUOp_reg 		: std_logic_vector(1 downto 0);
+	signal ALUOp_reg 	: std_logic_vector(2 downto 0);
 	
 begin
 
 	reg_process: process (clock)
 	begin
 	if (clock'event AND clock = '1') then
-		RegDst_reg 		<= '0';
-		Branch_reg 		<= '0';
+		-- initialize signals
+		RegDst_reg 	<= 'X';
+		Branch_reg 	<= '0';
 		MemRead_reg 	<= '0';
-		MemtoReg_reg	<= '0';
+		MemtoReg_reg	<= 'X';
 		MemWrite_reg	<= '0';
-		AluSrc_reg 		<= '0';
-		RegWrite_reg	<= '0';
-		ALUOp_reg 		<= "00";
+		AluSrc_reg 	<= 'X';
+		RegWrite_reg	<= 'X';
+		ALUOp_reg 	<= "XXX";
 		case Instruction is
 			-- r-format
 			when "000000" =>
-				RegDst_reg 		<= '1';
+				RegDst_reg 	<= '1';
+				MemtoReg_reg	<= '0';
+				AluSrc_reg 	<= '0';
 				RegWrite_reg	<= '1';
-				ALUOp_reg		<= "10";
+				ALUOp_reg 	<= "010";
 			-- addi
 			when "001000" =>
-				AluSrc_reg 		<= '1';
+				RegDst_reg 	<= '0';
+				MemtoReg_reg	<= '0';
+				AluSrc_reg 	<= '1';
 				RegWrite_reg	<= '1';
 			-- slti
 			when "001010" =>
-				null;
+				RegDst_reg 	<= '0';
+				MemtoReg_reg	<= '0';
+				AluSrc_reg 	<= '1';
+				ALUOp_reg	<= "100";
 			-- andi
 			when "001100" =>
-				null;
+				RegDst_reg 	<= '0';
+				MemtoReg_reg	<= '0';
+				AluSrc_reg 	<= '1';
+				ALUOp_reg	<= "101";
 			-- ori
 			when "001101" =>
-				null;
+				RegDst_reg 	<= '0';
+				MemtoReg_reg	<= '0';
+				AluSrc_reg 	<= '1';
+				ALUOp_reg	<= "110";
 			-- xori
 			when "001110" =>
-				null;
+				RegDst_reg 	<= '0';
+				MemtoReg_reg	<= '0';
+				AluSrc_reg 	<= '1';
+				ALUOp_reg	<= "111";
 			-- lui
 			when "001111" =>
-				null;
+				RegDst_reg 	<= '0';
+				AluSrc_reg 	<= '1';
 			-- lw
 			when "100011" =>
-				MemRead_reg		<= '1';
+				RegDst_reg 	<= '0';
+				MemRead_reg 	<= '1';
 				MemtoReg_reg	<= '1';
-				AluSrc_reg		<= '1';
+				AluSrc_reg 	<= '1';
 				RegWrite_reg	<= '1';
+				ALUOp_reg 	<= "000";
 			-- lb
 			when "100000" =>
-				null;
+				RegDst_reg 	<= '0';
 			-- sw
 			when "101011" =>
-				MemWrite_reg 	<= '1';
-				AluSrc_reg		<= '1';
+				MemWrite_reg	<= '1';
+				AluSrc_reg 	<= '1';
+				RegWrite_reg	<= '0';
+				ALUOp_reg 	<= "000";
 			-- sb
 			when "101000" =>
 				null;
 			-- beq
 			when "000100" =>
-				Branch_reg		<= '1';
-				AluOp_reg		<= "01";
+				Branch_reg 	<= '1';
+				AluSrc_reg 	<= '0';
+				RegWrite_reg	<= '0';
+				ALUOp_reg 	<= "001";
 			-- bne
 			when "000101" =>
-				null;
+				Branch_reg 	<= '1';
+				AluOp_reg	<= "001"; -- sub
 			-- j
 			when "000010" =>
-				Jump_reg			<= '1';
-				AluOp_reg		<= "10";
+				Jump_reg	<= '1';
+				ALUOp_reg	<= "000"; -- add
 			-- jal
 			when "000011" =>
 				null;

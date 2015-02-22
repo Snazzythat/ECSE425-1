@@ -11,7 +11,7 @@ ENTITY ALU IS
 			dataa 	: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 			datab 	: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 			control : IN STD_LOGIC_VECTOR (3 DOWNTO 0);
-			shampt	: IN STD_LOGIC_VECTOR (4 DOWNTO 0);
+			shamt	: IN STD_LOGIC_VECTOR (4 DOWNTO 0);
 			result 	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 			HI 		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 			LO 		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -23,7 +23,7 @@ ARCHITECTURE ARCH OF ALU IS
 
 	-- SIGNALS
 	SIGNAL addSubResult 	: STD_LOGIC_VECTOR (31 DOWNTO 0);
-	SIGNAL multiplyerResult : STD_LOGIC_VECTOR (63 DOWNTO 0);
+	SIGNAL multiplierResult : STD_LOGIC_VECTOR (63 DOWNTO 0);
 	SIGNAL dividerResult 	: STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL dividerRemainder : STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL aluResult 		: STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -43,7 +43,7 @@ ARCHITECTURE ARCH OF ALU IS
 	END COMPONENT;
 	
 	-- MULTIPLICATION
-	COMPONENT multiplyer
+	COMPONENT multiplier
 		PORT
 			(
 				dataa	: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -101,11 +101,11 @@ BEGIN
 	);
 	
 	-- MULTIPLICATION
-	multiply : multiplyer
+	multiply : multiplier
 	PORT MAP (
 		dataa	=> dataa,
 		datab	=> datab,
-		result	=> multiplyerResult
+		result	=> multiplierResult
 	);
 	
 	-- DIVIDER
@@ -146,21 +146,21 @@ BEGIN
 			(0 => sltResult, OTHERS => '0') WHEN "0111",
 			dataa NOR datab 				WHEN "1100",
 			dataa XOR datab 				WHEN "1101",
-			std_logic_vector(unsigned(dataa) sll to_integer(unsigned(shampt)))		WHEN "1000",
-			std_logic_vector(unsigned(dataa) sll to_integer(unsigned(shampt)))		WHEN "1001",
-			to_stdlogicvector(to_bitvector(dataa) sra to_integer(unsigned(shampt)))	WHEN "1010",
+			std_logic_vector(unsigned(dataa) sll to_integer(unsigned(shamt)))		WHEN "1000",
+			std_logic_vector(unsigned(dataa) sll to_integer(unsigned(shamt)))		WHEN "1001",
+			to_stdlogicvector(to_bitvector(dataa) sra to_integer(unsigned(shamt)))	WHEN "1010",
 			addSubResult 					WHEN OTHERS;
 			
 	-- MULTIPLEXER FOR HI OUTPUT
 	WITH control SELECT
 		HI <=
-			multiplyerResult(63 DOWNTO 32) 	WHEN "0011",
+			multiplierResult(63 DOWNTO 32) 	WHEN "0011",
 			dividerRemainder 			   	WHEN OTHERS;
 			
 	-- MULTIPLEXER FOR LO OUTPUT
 	WITH control SELECT
 		LO <=
-			multiplyerResult(31 DOWNTO 0) 	WHEN "0011",
+			multiplierResult(31 DOWNTO 0) 	WHEN "0011",
 			dividerResult					WHEN OTHERS;
 			
 	result <= aluResult;
