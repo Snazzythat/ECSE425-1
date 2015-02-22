@@ -19,7 +19,7 @@ entity control is
 		RegWrite	: out std_logic;
 		ALUOp		: out std_logic_vector(2 downto 0)
 	);
-end Control;
+end control;
 
 architecture behaviour of Control is
 	signal RegDst_reg 	: std_logic;

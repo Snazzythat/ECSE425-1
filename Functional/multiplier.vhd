@@ -4,7 +4,7 @@
 -- MODULE: lpm_mult 
 
 -- ============================================================
--- File Name: multiplyer.vhd
+-- File Name: multiplier.vhd
 -- Megafunction Name(s):
 -- 			lpm_mult
 --
@@ -39,17 +39,17 @@ USE ieee.std_logic_1164.all;
 LIBRARY lpm;
 USE lpm.all;
 
-ENTITY multiplyer IS
+ENTITY multiplier IS
 	PORT
 	(
 		dataa		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 		datab		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 		result		: OUT STD_LOGIC_VECTOR (63 DOWNTO 0)
 	);
-END multiplyer;
+END multiplier;
 
 
-ARCHITECTURE SYN OF multiplyer IS
+ARCHITECTURE SYN OF multiplier IS
 
 	SIGNAL sub_wire0	: STD_LOGIC_VECTOR (63 DOWNTO 0);
 

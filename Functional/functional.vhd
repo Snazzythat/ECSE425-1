@@ -63,7 +63,7 @@ architecture behaviour of functional is
 				dataa 	: in std_logic_vector (31 downto 0);
 				datab 	: in std_logic_vector (31 downto 0);
 				control 	: in std_logic_vector (3  downto 0);
-				shampt	: in std_logic_vector (4  downto 0);
+				shamt		: in std_logic_vector (4  downto 0);
 				result 	: out std_logic_vector(31 downto 0);
 				HI 		: out std_logic_vector(31 downto 0);
 				LO 		: out std_logic_vector(31 downto 0);
@@ -145,14 +145,19 @@ begin
 		datab <= 
 			readdata_2 when '0',
 			signext when '1',
-			"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" when others;
+			(others => 'X') when others;
+	
+	
+	-- sign extension
+	signext(15 downto 0) <= instruction(15 downto 0);
+	signext(31 downto 16) <= (others => instruction(15));
 	
 	alu_unit: ALU
 	port map(
 		dataa 	=> dataa,
 		datab 	=> datab,
 		control 	=> operation,
-		shampt	=> instruction(10 downto 6),
+		shamt		=> instruction(10 downto 6),
 		result 	=> result,
 		HI 		=> HI,
 		LO 		=> LO,
