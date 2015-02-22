@@ -3,18 +3,19 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
  
  
-ENTITY tb_Main_Memory IS
-END tb_Main_Memory;
+ENTITY tb_functional_processor IS
+END tb_functional_processor;
  
-ARCHITECTURE behavior OF tb_Main_Memory IS 
+ARCHITECTURE behavior OF tb_functional_processor IS 
  
 	type state_type is (init);
  
     -- Component Declaration for the Unit Under Test (UUT)
 	 
-	COMPONENT functional
+	COMPONENT functionalProcessor
     PORT(
-         clock : IN  std_logic
+         clock : IN  std_logic;
+	reset : IN std_logic
         );
     END COMPONENT;
     
@@ -32,9 +33,10 @@ ARCHITECTURE behavior OF tb_Main_Memory IS
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: functional 
+   uut: functionalProcessor 
 		PORT MAP (
           clock => clk,
+	reset => '0'
         );
 
    -- Clock process definitions
@@ -51,7 +53,6 @@ BEGIN
    stim_proc: process (clk)
    begin		
       if(clk'event and clk='1') then
-			data <= (others=>'Z');
 			case state is
 				when init =>
 					state <= init;				
@@ -61,4 +62,4 @@ BEGIN
 		end if;
    end process;
 
-END;
+END behavior;
