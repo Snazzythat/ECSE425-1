@@ -64,7 +64,7 @@ begin
 				when "100110"=>
 					op_reg <= "1101";
 				when others =>
-					op_reg <= "1111";
+					null;
 			end case;
 		when others =>
 			null;
