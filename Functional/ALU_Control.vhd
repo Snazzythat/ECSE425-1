@@ -4,9 +4,9 @@ USE ieee.numeric_std.all;
 
 entity ALU_control is
 	port (
-		ALUOp			: in std_logic_vector(1 downto 0);
-		funct 		: in std_logic_vector(5 downto 0);
-		operation	: out std_logic_vector(3 downto 0)
+		ALUOp			: in std_logic_vector(2 downto 0); -- from main control
+		funct 			: in std_logic_vector(5 downto 0); -- from instruction
+		operation		: out std_logic_vector(3 downto 0) -- output to ALU
 	);
 end ALU_control;
 
@@ -19,13 +19,26 @@ begin
 	begin
 	case ALUOp is
 		-- load and store
-		when "00" =>
+		when "000" =>
 			op_reg <= "0010";
 		-- branch equal 
-		when "01" =>
+		when "001" =>
 			op_reg <= "0110";
+		-- I-type
+		-- slti 
+		when "100" =>
+			op_reg <= "0111";
+		-- andi
+		when "101" =>
+			op_reg <= "0000";
+		-- ori 
+		when "110" =>
+			op_reg <= "0001";
+		-- xori
+		when "111" =>
+			op_reg <= "1101";
 		-- R-type
-		when "10" =>
+		when "010" =>
 			case funct is
 				-- AND
 				when "100100"=>
