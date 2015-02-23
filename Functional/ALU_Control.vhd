@@ -4,7 +4,7 @@ USE ieee.numeric_std.all;
 
 entity ALU_control is
 	port (
-		ALUOp			: in std_logic_vector(2 downto 0); -- from main control
+		ALUOp				: in std_logic_vector(2 downto 0); -- from main control
 		funct 			: in std_logic_vector(5 downto 0); -- from instruction
 		operation		: out std_logic_vector(3 downto 0) -- output to ALU
 	);

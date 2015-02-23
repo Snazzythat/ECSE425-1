@@ -27,12 +27,12 @@ architecture behaviour of registers is
 	signal regs: MEM;
 	
 begin
-
 	reg_process: process (clock)
-	begin		
+	begin
 		if (clock'event AND clock = '0') then
 			if(regwrite = '1') then
 				regs(to_integer(unsigned(write_reg))) <= writedata;
+				regs(0) <= x"00000000";
 			end if;
 		end if;
 	end process;
