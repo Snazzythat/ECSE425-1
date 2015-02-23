@@ -67,7 +67,7 @@ architecture behaviour of functionalProcessor is
 	-- Main Control Component --
 	----------------------------
 	
-	-- Main contral signal
+	-- Main control signal
 	signal MC_RegDst	: std_logic	:= '0';
 	signal MC_Jump		: std_logic	:= '0';
 	signal MC_Branch	: std_logic	:= '0';
@@ -115,23 +115,46 @@ architecture behaviour of functionalProcessor is
 	);
 	END COMPONENT;
 	
+	---------------------------
+	-- ALU Control Component --
+	---------------------------
 	
-	-------------------------------
-	-- Mux 2-1 (5bits) Component --
-	-------------------------------
+	-- ALU control output signal
+	signal operation : std_logic_vector(3 downto 0);
 	
-	-- Mux signals
-	signal writeRegisterMuxResult : STD_LOGIC_VECTOR (4 DOWNTO 0);
-	
-	COMPONENT Mux2_1 
-	PORT (
-		data0x	: IN STD_LOGIC_VECTOR (4 DOWNTO 0);
-		data1x	: IN STD_LOGIC_VECTOR (4 DOWNTO 0);
-		sel		: IN STD_LOGIC ;
-		result	: OUT STD_LOGIC_VECTOR (4 DOWNTO 0)
-	);
+	COMPONENT ALU_control
+		port (
+			ALUOp		: in std_logic_vector(2 downto 0);
+			funct 		: in std_logic_vector(5 downto 0);
+			operation	: out std_logic_vector(3 downto 0)
+		);
 	END COMPONENT;
 	
+	-------------------
+	-- ALU Component --
+	-------------------
+	
+	-- ALU  signals
+	signal signext 	: std_logic_vector(31 downto 0);
+	signal datab 	: std_logic_vector(31 downto 0);
+	signal ALUResult: std_logic_vector(31 downto 0);
+	signal HI		: std_logic_vector(31 downto 0);
+	signal LO		: std_logic_vector(31 downto 0);
+	signal Zero		: std_logic_vector(31 downto 0);
+		
+	COMPONENT ALU
+		port
+		(
+			dataa 	: in std_logic_vector (31 downto 0);
+			datab 	: in std_logic_vector (31 downto 0);
+			control 	: in std_logic_vector (3  downto 0);
+			shamt		: in std_logic_vector (4  downto 0);
+			result 	: out std_logic_vector(31 downto 0);
+			HI 		: out std_logic_vector(31 downto 0);
+			LO 		: out std_logic_vector(31 downto 0);
+			zero		: out std_logic
+		);
+	END COMPONENT;
 	
 BEGIN
 
@@ -163,7 +186,7 @@ BEGIN
     ----------------------------
 	-- Main Control Component --
 	----------------------------    
-	MainContral : control 
+	MainControl : control 
 	PORT MAP (
 		clock		=> clock,
 		Instruction	=> currentInstruction(31 downto 26),
@@ -178,16 +201,14 @@ BEGIN
 		ALUOp		=> MC_ALUOp
 	);
 	
-	-------------------------------
-	-- Mux 2-1 (5bits) Component --
-	-------------------------------
-	writeRegisterMux : Mux2_1 
-	PORT MAP (
-		data0x	=> currentInstruction(20 downto 16),
-		data1x	=> currentInstruction(15 downto 11),
-		sel		=> MC_RegDst,
-		result	=> writeRegisterMuxResult
-	);
+	-----------------------
+	-- Mux 2-1 Component --
+	-----------------------
+	with MC_RegDst select
+		writeRegisterMuxResult <= 
+			currentInstruction(20 downto 16) when '0',
+			currentInstruction(15 downto 11) when '1',
+			(others => 'X') when others;
 	
 	--------------------
 	-- Main Registers --
@@ -203,7 +224,47 @@ BEGIN
 		readdata_1	=> regData_1,
 		readdata_2	=> regData_2
 	);
-        
+    
+	-----------------
+	-- ALU Control --
+	-----------------
+	ALUControl : ALU_control
+	PORT MAP (
+		ALUOp		=> MC_ALUOp,
+		funct 		=> currentInstruction(5 downto 0),
+		operation	=> operation
+	);
+	
+	-----------------
+	-- Sign-extend --
+	-----------------
+	signext(15 downto 0) <= instruction(15 downto 0);
+	signext(31 downto 16) <= (others => instruction(15));
+	
+	-----------------------
+	-- Mux 2-1 Component --
+	-----------------------
+	with MC_RegDst select
+		datab <= 
+			regData_2 when '0',
+			signext when '1',
+			(others => 'X') when others;
+	
+	-------------------
+	-- ALU Component --
+	-------------------
+	ALUComponent: ALU
+	PORT MAP(
+		dataa 	=> regData_1,
+		datab 	=> datab,
+		control => operation,
+		shamt	=> currentInstruction(10 downto 6),
+		result 	=> ALUResult,
+		HI 		=> HI,
+		LO 		=> LO,
+		zero	=> Zero
+	);
+	END COMPONENT;
 	
 	---------------
 	-- FSM LOGIC --
