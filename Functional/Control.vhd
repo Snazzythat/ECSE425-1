@@ -106,7 +106,12 @@ begin
 				ALUOp_reg 	<= "000";
 			-- lb
 			when "100000" =>
-				null;
+				RegDst_reg 	<= '0';
+				MemRead_reg 	<= '1';
+				MemtoReg_reg	<= '1';
+				AluSrc_reg 	<= '1';
+				RegWrite_reg	<= '1';
+				ALUOp_reg 	<= "000";
 			-- sw
 			when "101011" =>
 				MemWrite_reg	<= '1';
@@ -114,7 +119,9 @@ begin
 				ALUOp_reg 	<= "000";
 			-- sb
 			when "101000" =>
-				null;
+				MemWrite_reg	<= '1';
+				AluSrc_reg 	<= '1';
+				ALUOp_reg 	<= "000";
 			-- beq
 			when "000100" =>
 				Branch_reg 	<= '1';
