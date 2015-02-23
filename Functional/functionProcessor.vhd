@@ -32,6 +32,14 @@ architecture behaviour of functionalProcessor is
 
 	-- Instruction Memory signal
 	signal programCounter		: integer 	:= 0;
+	signal programCounter_reg	: integer;
+	signal programCounter_adr	: std_logic_vector(31 downto 0);
+	signal branch_adr			: std_logic_vector(31 downto 0);
+	signal branch_sel			: std_logic;	
+	signal branch_M=mux			: std_logic_vector(31 downto 0);
+	signal jump_adr				: std_logic_vector(31 downto 0);
+	signal jump_mux				: std_logic_vector(31 downto 0);
+	
 	signal InstMem_word_byte 	: std_logic	:= '1';
 	signal InstMem_re 			: std_logic := '0';
 	signal InstMem_rd_ready 	: std_logic	:= '0';
@@ -76,6 +84,7 @@ architecture behaviour of functionalProcessor is
 	signal MC_MemWrite	: std_logic	:= '0';
 	signal MC_AluSrc	: std_logic	:= '0';
 	signal MC_RegWrite	: std_logic	:= '0';
+	signal MC_NotZero	: std_logic := '0';
 	signal MC_ALUOp		: std_logic_vector(2 downto 0);
 	    
 	COMPONENT control 
@@ -90,6 +99,7 @@ architecture behaviour of functionalProcessor is
 		MemWrite	: out std_logic;
 		AluSrc		: out std_logic;
 		RegWrite	: out std_logic;
+		NotZero_reg	: out std_logic;
 		ALUOp		: out std_logic_vector(2 downto 0)
 	);
 	END COMPONENT;
@@ -198,12 +208,13 @@ BEGIN
 		MemWrite	=> MC_MemWrite,
 		AluSrc		=> MC_AluSrc,
 		RegWrite	=> MC_RegWrite,
+		NotZero		=> MC_NotZero,
 		ALUOp		=> MC_ALUOp
 	);
 	
-	-----------------------
-	-- Mux 2-1 Component --
-	-----------------------
+	-------------------------------------
+	-- WriteRegister Mux 2-1 Component --
+	-------------------------------------
 	with MC_RegDst select
 		writeRegisterMuxResult <= 
 			currentInstruction(20 downto 16) when '0',
@@ -241,9 +252,9 @@ BEGIN
 	signext(15 downto 0) <= instruction(15 downto 0);
 	signext(31 downto 16) <= (others => instruction(15));
 	
-	-----------------------
-	-- Mux 2-1 Component --
-	-----------------------
+	-----------------------------
+	-- datab Mux 2-1 Component --
+	-----------------------------
 	with MC_RegDst select
 		datab <= 
 			regData_2 when '0',
@@ -265,6 +276,40 @@ BEGIN
 		zero	=> Zero
 	);
 	END COMPONENT;
+	
+	-----------------------
+	-- ALU Add Component --
+	-----------------------
+	ALUComponent: ALU
+	PORT MAP(
+		dataa 	=> programCounter_adr,
+		datab 	=> signext(29 downto 0) & "00",
+		control => "000", --add
+		result 	=> branch_adr
+	);
+	END COMPONENT;
+	
+	branch_sel <= MC_Branch AND (Zero XOR MC_NotZero); -- select line for branch mux
+	
+	------------------------------
+	-- branch Mux 2-1 Component --
+	------------------------------
+	with branch_sel select
+		branch_mux <= 
+			programCounter_adr when '0',
+			branch_adr when '1',
+			(others => 'X') when others;
+	
+	jump_adr <= programCounter_adr(31 downto 28) & currentInstruction(25 downto 0) & "00";
+	
+	----------------------------
+	-- jump Mux 2-1 Component --
+	----------------------------
+	with MC_Jump select
+		jump_mux <= 
+			branch_mux when '0',
+			jump_adr when '1',
+			(others => 'X') when others;
 	
 	---------------
 	-- FSM LOGIC --
