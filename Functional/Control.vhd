@@ -46,7 +46,7 @@ begin
 		MemRead_reg 	<= '0';
 		MemtoReg_reg	<= 'X';
 		MemWrite_reg	<= '0';
-		AluSrc_reg 	<= 'X';
+		AluSrc_reg 	<= '0';
 		RegWrite_reg	<= '0';
 		NotZero_reg	<= '0';
 		ALUOp_reg 	<= "XXX";
@@ -55,7 +55,6 @@ begin
 			-- r-format
 			when "000000" =>
 				RegDst_reg 	<= '1';
-				AluSrc_reg 	<= '0';
 				MemtoReg_reg	<= '0';
 				RegWrite_reg	<= '1';
 				ALUOp_reg 	<= "010";
@@ -119,12 +118,11 @@ begin
 			-- beq
 			when "000100" =>
 				Branch_reg 	<= '1';
-				AluSrc_reg 	<= '0';
-				ALUOp_reg 	<= "001";
+				ALUOp_reg 	<= "001"; -- sub
 			-- bne
 			when "000101" =>
 				Branch_reg 	<= '1';
-				NotZero_reg <= '1';
+				NotZero_reg	<= '1';
 				AluOp_reg	<= "001"; -- sub
 			-- j
 			when "000010" =>
