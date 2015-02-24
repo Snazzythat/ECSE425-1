@@ -39,13 +39,27 @@ BEGIN
 	subResult <= to_integer(signed(dataa)) - to_integer(signed(datab));
 	sltResult <= std_logic_vector(to_signed(subResult, 32)); -- Only the MSB is needed
 	multiplierResult <= to_integer(signed(dataa)) * to_integer(signed(datab));
-	divide: process (dividerResult, dividerRemainder, dataa, datab)
-	begin
-		if datab /= "00000000000000000000000000000000" then
-    		--	dividerResult  <= to_integer(signed(dataa)) / to_integer(signed(datab));
-			--dividerRemainder  <= to_integer(signed(dataa)) mod to_integer(signed(datab));
-		end if;
-	end process;
+	
+--
+--	divide: process (dividerResult, dividerRemainder, dataa, datab)
+--	begin
+--		if datab /= "00000000000000000000000000000000" then
+--    			dividerResult  <= to_integer(signed(dataa)) / to_integer(signed(datab));
+--			dividerRemainder  <= to_integer(signed(dataa)) mod to_integer(signed(datab));
+--		end if;
+--	end process;
+
+--	dividerResult	 <= 0 when datab = "00000000000000000000000000000000" else
+--			    to_integer(signed(dataa)) / to_integer(signed(datab));
+--	dividerRemainder <= 0 when datab = "00000000000000000000000000000000" else
+--			    to_integer(signed(dataa)) mod to_integer(signed(datab));
+--	with control select
+--		when "0100"
+
+	dividerResult	 <= to_integer(signed(dataa)) / to_integer(signed(datab)) when to_integer(signed(datab)) /= 0;
+	dividerRemainder <= to_integer(signed(dataa)) mod to_integer(signed(datab)) when to_integer(signed(datab)) /= 0;
+
+			
 	-----------------
 	-- CONVERSIONS --
 	-----------------
@@ -74,14 +88,16 @@ BEGIN
 	-- MULTIPLEXER FOR HI OUTPUT
 	WITH control SELECT
 		HI <=
-			multResult(63 DOWNTO 32)	WHEN "0011",
-			divRemainder(31 DOWNTO 0)	WHEN OTHERS;
+			multResult(63 DOWNTO 32)		WHEN "0011",
+			divRemainder(31 DOWNTO 0)		WHEN "0100",
+			"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"	WHEN OTHERS;
 			
 	-- MULTIPLEXER FOR LO OUTPUT
 	WITH control SELECT
 		LO <=
-			multResult(31 DOWNTO 0) 	WHEN "0011",
-			divResult			WHEN OTHERS;
+			multResult(31 DOWNTO 0) 		WHEN "0011",
+			divResult				WHEN "0100",
+			"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"	WHEN OTHERS;
 			
 	result <= aluResult;
 	
