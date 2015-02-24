@@ -46,7 +46,7 @@ begin
 		Jump_reg	<= '0';
 		Branch_reg 	<= '0';
 		MemRead_reg 	<= '0';
-		MemtoReg_reg	<= 'XX';
+		MemtoReg_reg	<= "XX";
 		MemWrite_reg	<= '0';
 		AluSrc_reg 	<= '0';
 		RegWrite_reg	<= '0';
@@ -58,48 +58,48 @@ begin
 			-- r-format
 			when "000000" =>
 				RegDst_reg 	<= '1';
-				MemtoReg_reg	<= '00';
+				MemtoReg_reg	<= "00";
 				RegWrite_reg	<= '1';
 				ALUOp_reg 	<= "010";
 			-- addi
 			when "001000" =>
 				RegDst_reg 	<= '0';
-				MemtoReg_reg	<= '00';
+				MemtoReg_reg	<= "00";
 				AluSrc_reg 	<= '1';
 				RegWrite_reg	<= '1';
 				ALUOp_reg	<= "000";
 			-- slti
 			when "001010" =>
 				RegDst_reg 	<= '0';
-				MemtoReg_reg	<= '00';
+				MemtoReg_reg	<= "00";
 				AluSrc_reg 	<= '1';
 				RegWrite_reg	<= '1';
 				ALUOp_reg	<= "100";
 			-- andi
 			when "001100" =>
 				RegDst_reg 	<= '0';
-				MemtoReg_reg	<= '00';
+				MemtoReg_reg	<= "00";
 				AluSrc_reg 	<= '1';
 				RegWrite_reg	<= '1';
 				ALUOp_reg	<= "101";
 			-- ori
 			when "001101" =>
 				RegDst_reg 	<= '0';
-				MemtoReg_reg	<= '00';
+				MemtoReg_reg	<= "00";
 				AluSrc_reg 	<= '1';
 				RegWrite_reg	<= '1';
 				ALUOp_reg	<= "110";
 			-- xori
 			when "001110" =>
 				RegDst_reg 	<= '0';
-				MemtoReg_reg	<= '00';
+				MemtoReg_reg	<= "00";
 				AluSrc_reg 	<= '1';
 				RegWrite_reg	<= '1';
 				ALUOp_reg	<= "111";
 			-- lui
 			when "001111" =>
 				RegDst_reg 	<= '0';
-				MemtoReg_reg	<= '00';
+				MemtoReg_reg	<= "00";
 				AluSrc_reg 	<= '1';
 				RegWrite_reg	<= '1';
 				LUI_reg		<= '1';
@@ -108,7 +108,7 @@ begin
 			when "100011" =>
 				RegDst_reg 	<= '0';
 				MemRead_reg 	<= '1';
-				MemtoReg_reg	<= '01';
+				MemtoReg_reg	<= "01";
 				AluSrc_reg 	<= '1';
 				RegWrite_reg	<= '1';
 				ALUOp_reg 	<= "000";
@@ -116,7 +116,7 @@ begin
 			when "100000" =>
 				RegDst_reg 	<= '0';
 				MemRead_reg 	<= '1';
-				MemtoReg_reg	<= '01';
+				MemtoReg_reg	<= "01";
 				AluSrc_reg 	<= '1';
 				RegWrite_reg	<= '1';
 				ALUOp_reg 	<= "000";
