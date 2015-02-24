@@ -197,9 +197,9 @@ BEGIN
 		clock		=> clock,
 		read_reg_1	=> currentInstruction(25 downto 21),
 		read_reg_2	=> currentInstruction(20 downto 16),
-		write_reg	=> MC_MemWrite,
+		write_reg	=> writeRegisterMuxResult,
 		writedata	=> (OTHERS => '0'), -- TODO CHANGE IT WHEN DATAMEMORY IS IMPLEMENTED
-		regwrite	=> writeRegisterMuxResult,
+		regwrite	=> MC_RegWrite,
 		readdata_1	=> regData_1,
 		readdata_2	=> regData_2
 	);
@@ -230,7 +230,7 @@ BEGIN
 
 					-- state processing --
 					if (InstMem_rd_ready = '1') then -- the output is ready on the memory bus
-						state <= processInstruction; 
+						state <= readInstruction1; 
 						currentInstruction <= InstMem_data;
 						programCounter <= programCounter + 4; -- update program counter
 						InstMem_re <='0';
