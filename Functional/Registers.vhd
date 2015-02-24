@@ -43,7 +43,7 @@ begin
 		
 			if (init = '1') then
 				for i in 0 to reg_width-1 loop 
-					regs(i) <= x"00000000";
+					regs(i) <= (others => 'Z');
 				end loop;
 			elsif(regwrite = '1') then
 				regs(to_integer(unsigned(write_reg))) <= writedata;
