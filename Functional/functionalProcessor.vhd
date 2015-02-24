@@ -486,7 +486,7 @@ BEGIN
 					reg_init		<= '0'; 
 					
 					if (DataMem_write_done = '1') then -- the output is ready on the memory bus
-						state <= dump; --write finished go to the dump state 
+						state <= readInstruction1; --write finished go to the dump state 
 					else
 						state <= storeData; -- stay in this state till you see rd_ready='1';
 					end if;	
