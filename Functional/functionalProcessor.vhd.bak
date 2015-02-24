@@ -88,12 +88,12 @@ architecture behaviour of functionProcessor is
 	signal MC_Jump		: std_logic	:= '0';
 	signal MC_Branch	: std_logic	:= '0';
 	signal MC_MemRead	: std_logic	:= '0';
+	signal MC_MemtoReg	: std_logic	:= '0';
 	signal MC_MemWrite	: std_logic	:= '0';
 	signal MC_AluSrc	: std_logic	:= '0';
 	signal MC_RegWrite	: std_logic	:= '0';
 	signal MC_NotZero	: std_logic := '0';
 	signal MC_LUI		: std_logic := '0';
-	signal MC_MemtoReg	: std_logic_vector(1 downto 0);
 	signal MC_ALUOp		: std_logic_vector(2 downto 0);
 	    
 	COMPONENT control 
@@ -142,6 +142,7 @@ architecture behaviour of functionProcessor is
 		regwrite	: in std_logic;
 		readdata_1	: out std_logic_vector(31 downto 0);
 		readdata_2	: out std_logic_vector(31 downto 0);
+		
 		writeLOHI	: in std_logic;
 		LOin		: in std_logic_vector(31 downto 0);
 		HIin		: in std_logic_vector(31 downto 0);

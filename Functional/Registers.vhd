@@ -39,7 +39,7 @@ architecture behaviour of registers is
 begin
 	reg_process: process (clock)
 	begin
-		if (clock'event AND clock = '0') then
+		if (clock'event AND clock = '1') then
 		
 			if (init = '1') then
 				for i in 0 to reg_width-1 loop 
