@@ -36,7 +36,7 @@ architecture behaviour of functionalProcessor is
 	signal programCounter_adr	: std_logic_vector(31 downto 0);
 	signal branch_adr			: std_logic_vector(31 downto 0);
 	signal branch_sel			: std_logic;	
-	signal branch_M=mux			: std_logic_vector(31 downto 0);
+	signal branch_mux			: std_logic_vector(31 downto 0);
 	signal jump_adr				: std_logic_vector(31 downto 0);
 	signal jump_mux				: std_logic_vector(31 downto 0);
 	
@@ -99,7 +99,7 @@ architecture behaviour of functionalProcessor is
 		MemWrite	: out std_logic;
 		AluSrc		: out std_logic;
 		RegWrite	: out std_logic;
-		NotZero_reg	: out std_logic;
+		NotZero	: out std_logic;
 		ALUOp		: out std_logic_vector(2 downto 0)
 	);
 	END COMPONENT;
@@ -111,6 +111,7 @@ architecture behaviour of functionalProcessor is
 	-- Registers output signal
 	signal regData_1 : std_logic_vector(31 downto 0);
 	signal regData_2 : std_logic_vector(31 downto 0);
+	signal writeRegisterMuxResult : STD_LOGIC_VECTOR (4 DOWNTO 0);
 	
 	COMPONENT registers
 	port (
@@ -150,7 +151,7 @@ architecture behaviour of functionalProcessor is
 	signal ALUResult: std_logic_vector(31 downto 0);
 	signal HI		: std_logic_vector(31 downto 0);
 	signal LO		: std_logic_vector(31 downto 0);
-	signal Zero		: std_logic_vector(31 downto 0);
+	signal Zero		: std_logic;
 		
 	COMPONENT ALU
 		port
@@ -249,8 +250,8 @@ BEGIN
 	-----------------
 	-- Sign-extend --
 	-----------------
-	signext(15 downto 0) <= instruction(15 downto 0);
-	signext(31 downto 16) <= (others => instruction(15));
+	signext(15 downto 0) <= currentInstruction(15 downto 0);
+	signext(31 downto 16) <= (others => currentInstruction(15));
 	
 	-----------------------------
 	-- datab Mux 2-1 Component --
@@ -275,19 +276,18 @@ BEGIN
 		LO 		=> LO,
 		zero	=> Zero
 	);
-	END COMPONENT;
 	
 	-----------------------
 	-- ALU Add Component --
 	-----------------------
-	ALUComponent: ALU
+	ALUAdder: ALU
 	PORT MAP(
 		dataa 	=> programCounter_adr,
 		datab 	=> signext(29 downto 0) & "00",
 		control => "000", --add
+		shamt => currentInstruction(10 downto 6),
 		result 	=> branch_adr
 	);
-	END COMPONENT;
 	
 	branch_sel <= MC_Branch AND (Zero XOR MC_NotZero); -- select line for branch mux
 	
