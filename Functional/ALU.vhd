@@ -2,9 +2,6 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
-LIBRARY lpm;
-USE lpm.all;
-
 ENTITY ALU IS
 	PORT
 	(
@@ -13,8 +10,8 @@ ENTITY ALU IS
 			control : IN STD_LOGIC_VECTOR (3 DOWNTO 0);
 			shamt	: IN STD_LOGIC_VECTOR (4 DOWNTO 0);
 			result 	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-			HI 		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-			LO 		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+			HI 	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
+			LO 	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 			zero	: OUT STD_LOGIC
 	);
 END ALU;
@@ -22,116 +19,34 @@ END ALU;
 ARCHITECTURE ARCH OF ALU IS
 
 	-- SIGNALS
-	SIGNAL addSubResult 	: STD_LOGIC_VECTOR (31 DOWNTO 0);
-	SIGNAL multiplierResult : STD_LOGIC_VECTOR (63 DOWNTO 0);
-	SIGNAL dividerResult 	: STD_LOGIC_VECTOR (31 DOWNTO 0);
-	SIGNAL dividerRemainder : STD_LOGIC_VECTOR (31 DOWNTO 0);
+	SIGNAL addResult 		: INTEGER;
+	SIGNAL subResult		: INTEGER;
+	SIGNAL multiplierResult		: INTEGER;
+	SIGNAL dividerResult 		: INTEGER;
+	SIGNAL dividerRemainder 	: INTEGER;
+	SIGNAL multResult		: STD_LOGIC_VECTOR (63 DOWNTO 0);
+	SIGNAL divResult		: STD_LOGIC_VECTOR (31 DOWNTO 0);
+	SIGNAL divRemainder		: STD_LOGIC_VECTOR (31 DOWNTO 0);
 	SIGNAL aluResult 		: STD_LOGIC_VECTOR (31 DOWNTO 0);
-	SIGNAL sltResult	 	: STD_LOGIC;
-	SIGNAL add_sub			: STD_LOGIC;
+	SIGNAL sltResult	 	: STD_LOGIC_VECTOR (31 DOWNTO 0);
+	SIGNAL add_sub			: INTEGER;
 	
-	
-	-- ADDITION AND SUBSTRACTION
-	COMPONENT AddSub
-	PORT
-	(
-		add_sub		: IN STD_LOGIC ;
-		dataa		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-		datab		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-		result		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
-	);
-	END COMPONENT;
-	
-	-- MULTIPLICATION
-	COMPONENT multiplier
-		PORT
-			(
-				dataa	: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-				datab	: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-				result	: OUT STD_LOGIC_VECTOR (63 DOWNTO 0)
-			);
-	END COMPONENT;
-	
-	-- DIVIDER
-	COMPONENT divider
-		PORT
-			(
-				denom		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-				numer		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-				quotient	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
-				remain		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
-			);
-	END COMPONENT;
-	
-	-- SET LESS THAN --
-	COMPONENT setLessThanComp 
-		PORT
-			(
-				dataa	: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-				datab	: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-				AlB		: OUT STD_LOGIC 
-			);
-	END COMPONENT;
-	
-	-- IS ZERO --
-	COMPONENT isZero 
-	PORT
-		(
-			dataa	: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-			AeB		: OUT STD_LOGIC 
-		);
-	END COMPONENT;
-
-	
-
 BEGIN
-	
 	---------------
 	-- OPERATORS --
 	---------------
-	
-	add_sub <= NOT control(2);
-	-- ADDITION AND SUBSTRACTION
-	addAndSubstract : AddSub
-	PORT MAP (
-		dataa => dataa,
-		add_sub => add_sub,
-		datab => datab,
-		result => addSubResult
-	);
-	
-	-- MULTIPLICATION
-	multiply : multiplier
-	PORT MAP (
-		dataa	=> dataa,
-		datab	=> datab,
-		result	=> multiplierResult
-	);
-	
-	-- DIVIDER
-	divide : divider
-	PORT MAP (
-		denom		=> datab,
-		numer		=> dataa,
-		quotient	=> dividerResult,
-		remain		=> dividerRemainder
-	);
-	
-	-- SET LESS THAN --
-	slt : setLessThanComp 
-	PORT MAP (
-		dataa	=> dataa,
-		datab	=> datab,
-		AlB		=> sltResult
-	);
-	
-	-- IS ZERO --
-	equalZero : isZero 
-	PORT MAP (
-		dataa	=> aluResult,
-		AeB		=> zero 
-	);
-	
+	addResult <= to_integer(signed(dataa)) + to_integer(signed(datab));
+	subResult <= to_integer(signed(dataa)) - to_integer(signed(datab));
+	sltResult <= std_logic_vector(to_signed(subResult, 32)); -- Only the MSB is needed
+	multiplierResult <= to_integer(signed(dataa)) * to_integer(signed(datab));
+	--dividerResult <= to_integer(signed(dataa)) / to_integer(signed(datab));
+	--dividerRemainder <= to_integer(signed(dataa)) rem to_integer(signed(datab));
+	-----------------
+	-- CONVERSIONS --
+	-----------------
+	multResult <= std_logic_vector(to_signed(multiplierResult, 64));
+	divResult <= std_logic_vector(to_signed(dividerResult, 32));
+	divRemainder <= std_logic_vector(to_signed(dividerRemainder, 32));
 	------------------
 	-- MULTIPLEXERS --
 	------------------
@@ -139,29 +54,29 @@ BEGIN
 	-- MULTIPLEXER FOR result OUTPUT
 	WITH control SELECT
 		aluResult <=
-			dataa AND datab 				WHEN "0000",
-			dataa OR datab 					WHEN "0001",
-			addSubResult 					WHEN "0010",
-			addSubResult 					WHEN "0110",
-			(0 => sltResult, OTHERS => '0') WHEN "0111",
-			dataa NOR datab 				WHEN "1100",
-			dataa XOR datab 				WHEN "1101",
+			dataa AND datab 								WHEN "0000",
+			dataa OR datab 									WHEN "0001",
+			std_logic_vector(to_signed(subResult, 32)) 					WHEN "0110",
+			std_logic_vector(to_signed(addResult, 32)) 					WHEN "0010",
+			std_logic_vector(unsigned(sltResult) srl 31) 					WHEN "0111", -- The MSB is 1 if negative of 0 if positve
+			dataa NOR datab 								WHEN "1100",
+			dataa XOR datab 								WHEN "1101",
 			std_logic_vector(unsigned(dataa) sll to_integer(unsigned(shamt)))		WHEN "1000",
-			std_logic_vector(unsigned(dataa) sll to_integer(unsigned(shamt)))		WHEN "1001",
-			to_stdlogicvector(to_bitvector(dataa) sra to_integer(unsigned(shamt)))	WHEN "1010",
-			addSubResult 					WHEN OTHERS;
+			std_logic_vector(unsigned(dataa) srl to_integer(unsigned(shamt)))		WHEN "1001",
+			to_stdlogicvector(to_bitvector(dataa) sra to_integer(unsigned(shamt)))		WHEN "1010",
+			std_logic_vector(to_signed(addResult, 32)) 					WHEN OTHERS;
 			
 	-- MULTIPLEXER FOR HI OUTPUT
 	WITH control SELECT
 		HI <=
-			multiplierResult(63 DOWNTO 32) 	WHEN "0011",
-			dividerRemainder 			   	WHEN OTHERS;
+			multResult(63 DOWNTO 32)	WHEN "0011",
+			divRemainder(31 DOWNTO 0)	WHEN OTHERS;
 			
 	-- MULTIPLEXER FOR LO OUTPUT
 	WITH control SELECT
 		LO <=
-			multiplierResult(31 DOWNTO 0) 	WHEN "0011",
-			dividerResult					WHEN OTHERS;
+			multResult(31 DOWNTO 0) 	WHEN "0011",
+			divResult			WHEN OTHERS;
 			
 	result <= aluResult;
 	
