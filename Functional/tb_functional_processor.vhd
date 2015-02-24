@@ -12,10 +12,10 @@ ARCHITECTURE behavior OF tb_functional_processor IS
  
     -- Component Declaration for the Unit Under Test (UUT)
 	 
-	COMPONENT functionalProcessor
+	COMPONENT functionProcessor
     PORT(
          clock : IN  std_logic;
-	reset : IN std_logic
+			reset : IN std_logic
         );
     END COMPONENT;
     
@@ -33,7 +33,7 @@ ARCHITECTURE behavior OF tb_functional_processor IS
 BEGIN
  
 	-- Instantiate the Unit Under Test (UUT)
-   uut: functionalProcessor 
+   uut: functionProcessor 
 		PORT MAP (
           clock => clk,
 	reset => '0'
