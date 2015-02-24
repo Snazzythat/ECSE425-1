@@ -40,7 +40,7 @@ begin
 
 	reg_process: process (clock)
 	begin
-	if (clock'event AND clock = '0') then
+	if (clock'event AND clock = '1') then
 		-- initialize signals
 		RegDst_reg 	<= 'X';
 		Jump_reg	<= '0';
