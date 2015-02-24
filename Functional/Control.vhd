@@ -18,6 +18,7 @@ entity control is
 		AluSrc		: out std_logic;
 		RegWrite	: out std_logic;
 		NotZero		: out std_logic;
+		LUI		: out std_logic;
 		ALUOp		: out std_logic_vector(2 downto 0)
 	);
 end control;
@@ -32,6 +33,7 @@ architecture behaviour of Control is
 	signal AluSrc_reg 	: std_logic;
 	signal RegWrite_reg 	: std_logic;
 	signal NotZero_reg	: std_logic;
+	signal LUI_reg			: std_logic;
 	signal ALUOp_reg 	: std_logic_vector(2 downto 0);
 	
 begin
@@ -49,6 +51,7 @@ begin
 		AluSrc_reg 	<= '0';
 		RegWrite_reg	<= '0';
 		NotZero_reg	<= '0';
+		LUI_reg		<= '0';
 		ALUOp_reg 	<= "XXX";
 		
 		case Instruction is
@@ -95,7 +98,12 @@ begin
 				ALUOp_reg	<= "111";
 			-- lui
 			when "001111" =>
-				null;
+				RegDst_reg 	<= '0';
+				MemtoReg_reg	<= '0';
+				AluSrc_reg 	<= '1';
+				RegWrite_reg	<= '1';
+				LUI_reg		<= '1';
+				ALUOp_reg	<= "000";
 			-- lw
 			when "100011" =>
 				RegDst_reg 	<= '0';
@@ -153,5 +161,6 @@ begin
 	AluSrc 	<= AluSrc_reg;
 	RegWrite <= RegWrite_reg;
 	NotZero <= NotZero_reg;
+	LUI		<= LUI_reg;
 	ALUOp 	<= AluOp_reg;
 end behaviour;

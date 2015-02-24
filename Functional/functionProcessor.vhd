@@ -85,6 +85,7 @@ architecture behaviour of functionProcessor is
 	signal MC_AluSrc	: std_logic	:= '0';
 	signal MC_RegWrite	: std_logic	:= '0';
 	signal MC_NotZero	: std_logic := '0';
+	signal MC_LUI	: std_logic := '0';
 	signal MC_ALUOp		: std_logic_vector(2 downto 0);
 	    
 	COMPONENT control 
@@ -100,6 +101,7 @@ architecture behaviour of functionProcessor is
 		AluSrc		: out std_logic;
 		RegWrite	: out std_logic;
 		NotZero	: out std_logic;
+		LUI		: out std_logic;
 		ALUOp		: out std_logic_vector(2 downto 0)
 	);
 	END COMPONENT;
@@ -221,6 +223,7 @@ BEGIN
 		AluSrc		=> MC_AluSrc,
 		RegWrite	=> MC_RegWrite,
 		NotZero		=> MC_NotZero,
+		LUI		=> MC_LUI,
 		ALUOp		=> MC_ALUOp
 	);
 	
@@ -266,9 +269,19 @@ BEGIN
 	-----------------
 	-- Sign-extend --
 	-----------------
-	signext(15 downto 0) <= currentInstruction(15 downto 0);
-	signext(31 downto 16) <= (others => currentInstruction(15));
 	
+	with MC_LUI select
+		signext(15 downto 0) <= 
+			currentInstruction(15 downto 0) when '0',
+			(others => '0') when '1',
+			(others => 'X') when others;
+			
+	with MC_LUI select
+		signext(31 downto 16) <= 
+			(others => currentInstruction(15)) when '0',
+			currentInstruction(15 downto 0) when '1',
+			(others => 'X') when others;
+			
 	-----------------------------
 	-- datab Mux 2-1 Component --
 	-----------------------------
