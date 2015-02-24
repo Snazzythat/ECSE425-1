@@ -2,7 +2,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
-entity functionalProcessor is
+entity functionProcessor is
 	generic(
 		clock_period : time := 1 ns
 	);
@@ -10,9 +10,9 @@ entity functionalProcessor is
 		clock : in std_logic;
 		reset : in std_logic
 	);
-end functionalProcessor;
+end functionProcessor;
 
-architecture behaviour of functionalProcessor is
+architecture behaviour of functionProcessor is
 
 	-- CONSTANTS --
 	Constant Num_Bits_in_Byte	: integer := 8; 
@@ -112,6 +112,9 @@ architecture behaviour of functionalProcessor is
 	signal regData_1 : std_logic_vector(31 downto 0);
 	signal regData_2 : std_logic_vector(31 downto 0);
 	signal writeRegisterMuxResult : STD_LOGIC_VECTOR (4 DOWNTO 0);
+	signal writeLOHI : std_logic;
+	signal LO_reg	  : std_logic_vector(31 downto 0);
+	signal HI_reg	  : std_logic_vector(31 downto 0);
 	
 	COMPONENT registers
 	port (
@@ -122,7 +125,13 @@ architecture behaviour of functionalProcessor is
 		writedata	: in std_logic_vector(31 downto 0);
 		regwrite	: in std_logic;
 		readdata_1	: out std_logic_vector(31 downto 0);
-		readdata_2	: out std_logic_vector(31 downto 0)
+		readdata_2	: out std_logic_vector(31 downto 0);
+		
+		writeLOHI	: in std_logic;
+		LOin			: in std_logic_vector(31 downto 0);
+		HIin			: in std_logic_vector(31 downto 0);
+		LOout			: out std_logic_vector(31 downto 0);
+		HIout			: out std_logic_vector(31 downto 0)
 	);
 	END COMPONENT;
 	
@@ -147,7 +156,9 @@ architecture behaviour of functionalProcessor is
 	
 	-- ALU  signals
 	signal signext 	: std_logic_vector(31 downto 0);
+	signal databmux: std_logic_vector(31 downto 0);
 	signal datab 	: std_logic_vector(31 downto 0);
+	signal databadder	: std_logic_vector(31 downto 0);
 	signal ALUResult: std_logic_vector(31 downto 0);
 	signal HI		: std_logic_vector(31 downto 0);
 	signal LO		: std_logic_vector(31 downto 0);
@@ -234,7 +245,12 @@ BEGIN
 		writedata	=> (OTHERS => '0'), -- TODO CHANGE IT WHEN DATAMEMORY IS IMPLEMENTED
 		regwrite	=> MC_RegWrite,
 		readdata_1	=> regData_1,
-		readdata_2	=> regData_2
+		readdata_2	=> regData_2,
+		writeLOHI	=> writeLOHI,
+		LOin			=> LO,
+		HIin			=> HI,
+		LOout			=> LO_reg,
+		HIout			=> HI_reg
 	);
     
 	-----------------
@@ -257,11 +273,11 @@ BEGIN
 	-- datab Mux 2-1 Component --
 	-----------------------------
 	with MC_RegDst select
-		datab <= 
+		databmux <= 
 			regData_2 when '0',
 			signext when '1',
 			(others => 'X') when others;
-	
+	datab <= databmux;
 	-------------------
 	-- ALU Component --
 	-------------------
@@ -269,22 +285,23 @@ BEGIN
 	PORT MAP(
 		dataa 	=> regData_1,
 		datab 	=> datab,
-		control => operation,
-		shamt	=> currentInstruction(10 downto 6),
+		control 	=> operation,
+		shamt		=> currentInstruction(10 downto 6),
 		result 	=> ALUResult,
 		HI 		=> HI,
 		LO 		=> LO,
 		zero	=> Zero
 	);
 	
+	databadder <=  signext(29 downto 0) & "00";
 	-----------------------
 	-- ALU Add Component --
 	-----------------------
 	ALUAdder: ALU
 	PORT MAP(
 		dataa 	=> programCounter_adr,
-		datab 	=> signext(29 downto 0) & "00",
-		control => "000", --add
+		datab 	=> databadder,
+		control => "0010", --add
 		shamt => currentInstruction(10 downto 6),
 		result 	=> branch_adr
 	);
@@ -336,10 +353,10 @@ BEGIN
 
 					-- state processing --
 					if (InstMem_rd_ready = '1') then -- the output is ready on the memory bus
-						state <= processInstruction; 
 						currentInstruction <= InstMem_data;
 						programCounter <= programCounter + 4; -- update program counter
 						InstMem_re <='0';
+						state <= processInstruction;
 					else
 						state <= readInstruction2; -- stay in this state till you see InstMem_rd_ready='1';
 					end if;
