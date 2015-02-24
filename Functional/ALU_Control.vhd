@@ -6,7 +6,8 @@ entity ALU_control is
 	port (
 		ALUOp				: in std_logic_vector(2 downto 0); -- from main control
 		funct 			: in std_logic_vector(5 downto 0); -- from instruction
-		operation		: out std_logic_vector(3 downto 0) -- output to ALU
+		operation		: out std_logic_vector(3 downto 0); -- output to ALU
+		writeLOHI		: out std_logic
 	);
 end ALU_control;
 
@@ -17,6 +18,7 @@ begin
 
 	reg_process: process (ALUOp, funct)
 	begin
+	writeLOHI <= '0';
 	case ALUOp is
 		-- load and store
 		when "000" =>
@@ -52,9 +54,11 @@ begin
 				-- multiply
 				when "011000"=>
 					op_reg <= "0011";
+					writeLOHI <= '1';
 				-- divide
 				when "011010"=>
 					op_reg <= "0100";
+					writeLOHI <= '1';
 				-- subtract
 				when "100010"=>
 					op_reg <= "0110";

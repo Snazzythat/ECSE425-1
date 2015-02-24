@@ -2,7 +2,7 @@ LIBRARY ieee;
 USE ieee.std_logic_1164.all;
 USE ieee.numeric_std.all;
 
-entity functionProcessor is
+entity functionalProcessor is
 	generic(
 		clock_period : time := 1 ns
 	);
@@ -10,9 +10,9 @@ entity functionProcessor is
 		clock : in std_logic;
 		reset : in std_logic
 	);
-end functionProcessor;
+end functionalProcessor;
 
-architecture behaviour of functionProcessor is
+architecture behaviour of functionalProcessor is
 
 	-- CONSTANTS --
 	Constant Num_Bits_in_Byte	: integer := 8; 
@@ -122,7 +122,6 @@ architecture behaviour of functionProcessor is
 	signal reg_init	 : std_logic;
 	signal regData_1 : std_logic_vector(31 downto 0);
 	signal regData_2 : std_logic_vector(31 downto 0);
-	signal writeLOHI : std_logic;
 	signal reg_HI : std_logic_vector(31 downto 0);
 	signal reg_LO : std_logic_vector(31 downto 0);
 
@@ -156,12 +155,14 @@ architecture behaviour of functionProcessor is
 	
 	-- ALU control output signal
 	signal ALU_Control_Operation : std_logic_vector(3 downto 0);
+	signal writeLOHI : std_logic;
 	
 	COMPONENT ALU_control
 		port (
 			ALUOp		: in std_logic_vector(2 downto 0);
 			funct 		: in std_logic_vector(5 downto 0);
-			operation	: out std_logic_vector(3 downto 0)
+			operation	: out std_logic_vector(3 downto 0);
+			writeLOHI	: out std_logic
 		);
 	END COMPONENT;
 	
@@ -318,7 +319,8 @@ BEGIN
 	PORT MAP (
 		ALUOp		=> MC_ALUOp,
 		funct 		=> currentInstruction(5 downto 0),
-		operation	=> ALU_Control_Operation
+		operation	=> ALU_Control_Operation,
+		writeLOHI => writeLOHI
 	);
 	
 	-----------------
