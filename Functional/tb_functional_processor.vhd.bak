@@ -15,7 +15,7 @@ ARCHITECTURE behavior OF tb_functional_processor IS
 	COMPONENT functionalProcessor
     PORT(
          clock : IN  std_logic;
-	reset : IN std_logic
+			reset : IN std_logic
         );
     END COMPONENT;
     
@@ -25,7 +25,7 @@ ARCHITECTURE behavior OF tb_functional_processor IS
    
 
    -- Clock period definitions
-   constant clk_period : time := 10 ns;
+   constant clk_period : time := 1 ns;
 	
 	-- Tests Simulation State 
 	signal state:	state_type:=init;
@@ -35,7 +35,8 @@ BEGIN
 	-- Instantiate the Unit Under Test (UUT)
    uut: functionalProcessor 
 		PORT MAP (
-          clock => clk
+          clock => clk,
+		reset => '0'
         );
 
    -- Clock process definitions

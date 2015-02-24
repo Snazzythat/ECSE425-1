@@ -149,12 +149,12 @@ begin
 			-- mfhi	
 			when "010000" =>
 				RegWrite_reg <= '1';
-				RegDst <= '1';
+				RegDst_reg <= '1';
 				MemtoReg_reg <= "10";
 			-- mflo
 			when "010010" =>
 				RegWrite_reg <= '1';
-				RegDst <= '1';
+				RegDst_reg <= '1';
 				MemtoReg_reg <= "11";
 			when others =>
 				null;

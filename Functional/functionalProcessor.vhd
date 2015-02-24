@@ -156,13 +156,16 @@ architecture behaviour of functionalProcessor is
 	-- ALU control output signal
 	signal ALU_Control_Operation : std_logic_vector(3 downto 0);
 	signal writeLOHI : std_logic;
+	signal writeDataMux : std_logic_vector(31 downto 0);
+	signal ALUControlReadLOHI : std_logic_vector(1 downto 0);
 	
 	COMPONENT ALU_control
 		port (
 			ALUOp		: in std_logic_vector(2 downto 0);
 			funct 		: in std_logic_vector(5 downto 0);
 			operation	: out std_logic_vector(3 downto 0);
-			writeLOHI	: out std_logic
+			writeLOHI	: out std_logic;
+			readLOHI	: out std_logic_vector(1 downto 0)
 		);
 	END COMPONENT;
 	
@@ -288,10 +291,8 @@ BEGIN
 	-- WriteData Mux 2-1 Component --
 	with MC_MemtoReg select
 		MemtoRegMux <= 
-			ALU_Result 		when "00",
-			DataMem_data 	when "01",
-			reg_HI			when "10",
-			reg_LO 			when "11",
+			ALU_Result 		when '0',
+			DataMem_data 	when '1',
 			(others => 'X') when others;
 			
 	MainRegisters : registers
@@ -301,7 +302,7 @@ BEGIN
 		read_reg_1	=> currentInstruction(25 downto 21),
 		read_reg_2	=> currentInstruction(20 downto 16),
 		write_reg	=> RegDstMux,
-		writedata	=> MemtoRegMux,
+		writedata	=> writeDataMux,
 		regwrite	=> MC_RegWrite,
 		readdata_1	=> regData_1,
 		readdata_2	=> regData_2,
@@ -315,12 +316,23 @@ BEGIN
 	-----------------
 	-- ALU Control --
 	-----------------
+	
+	-- WriteData Mux 2-1 Component --
+	with ALUControlReadLOHI select
+		writeDataMux <= 
+			MemtoRegMux when "00",
+			reg_HI 		when "10",
+			reg_LO 		when "11",
+			(others => 'X') when others;
+	
+	
 	ALUControl : ALU_control
 	PORT MAP (
 		ALUOp		=> MC_ALUOp,
 		funct 		=> currentInstruction(5 downto 0),
 		operation	=> ALU_Control_Operation,
-		writeLOHI => writeLOHI
+		writeLOHI 	=> writeLOHI,
+		readLOHI 	=> ALUControlReadLOHI
 	);
 	
 	-----------------

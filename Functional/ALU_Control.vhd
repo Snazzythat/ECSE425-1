@@ -4,10 +4,11 @@ USE ieee.numeric_std.all;
 
 entity ALU_control is
 	port (
-		ALUOp				: in std_logic_vector(2 downto 0); -- from main control
+		ALUOp			: in std_logic_vector(2 downto 0); -- from main control
 		funct 			: in std_logic_vector(5 downto 0); -- from instruction
 		operation		: out std_logic_vector(3 downto 0); -- output to ALU
-		writeLOHI		: out std_logic
+		writeLOHI		: out std_logic;
+		readLOHI		: out std_logic_vector(1 downto 0)
 	);
 end ALU_control;
 
@@ -19,6 +20,7 @@ begin
 	reg_process: process (ALUOp, funct)
 	begin
 	writeLOHI <= '0';
+	readLOHI <= "00";
 	case ALUOp is
 		-- load and store
 		when "000" =>
@@ -80,6 +82,14 @@ begin
 				-- XOR
 				when "100110"=>
 					op_reg <= "1101";
+				-- Move from LO
+				when "010010"=>
+					op_reg <="100000";
+					readLOHI <= "11";
+				-- Move from HI
+				when "010000"=>
+					op_reg <="100000";
+					readLOHI <= "10";
 				when others =>
 					null;
 			end case;
