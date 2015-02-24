@@ -104,7 +104,7 @@ architecture behaviour of functionProcessor is
 		Jump		: out std_logic;
 		Branch		: out std_logic;
 		MemRead		: out std_logic;
-		MemtoReg	: out std_logic;
+		MemtoReg	: out std_logic_vector(1 downto 0);
 		MemWrite	: out std_logic;
 		AluSrc		: out std_logic;
 		RegWrite	: out std_logic;
