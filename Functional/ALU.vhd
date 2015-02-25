@@ -39,27 +39,8 @@ BEGIN
 	subResult <= to_integer(signed(dataa)) - to_integer(signed(datab));
 	sltResult <= std_logic_vector(to_signed(subResult, 32)); -- Only the MSB is needed
 	multiplierResult <= to_integer(signed(dataa)) * to_integer(signed(datab));
-	
---
---	divide: process (dividerResult, dividerRemainder, dataa, datab)
---	begin
---		if datab /= "00000000000000000000000000000000" then
---    			dividerResult  <= to_integer(signed(dataa)) / to_integer(signed(datab));
---			dividerRemainder  <= to_integer(signed(dataa)) mod to_integer(signed(datab));
---		end if;
---	end process;
-
---	dividerResult	 <= 0 when datab = "00000000000000000000000000000000" else
---			    to_integer(signed(dataa)) / to_integer(signed(datab));
---	dividerRemainder <= 0 when datab = "00000000000000000000000000000000" else
---			    to_integer(signed(dataa)) mod to_integer(signed(datab));
---	with control select
---		when "0100"
-
 	dividerResult	 <= to_integer(signed(dataa)) / to_integer(signed(datab)) when to_integer(signed(datab)) /= 0;
 	dividerRemainder <= to_integer(signed(dataa)) mod to_integer(signed(datab)) when to_integer(signed(datab)) /= 0;
-
-			
 	-----------------
 	-- CONVERSIONS --
 	-----------------
