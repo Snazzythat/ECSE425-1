@@ -84,11 +84,11 @@ begin
 					op_reg <= "1101";
 				-- Move from LO
 				when "010010"=>
-					op_reg <="0010";
+					op_reg <="100000";
 					readLOHI <= "11";
 				-- Move from HI
 				when "010000"=>
-					op_reg <="0010";
+					op_reg <="100000";
 					readLOHI <= "10";
 				when others =>
 					null;

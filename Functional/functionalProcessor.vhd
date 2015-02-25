@@ -93,7 +93,7 @@ architecture behaviour of functionalProcessor is
 	signal MC_RegWrite	: std_logic	:= '0';
 	signal MC_NotZero	: std_logic := '0';
 	signal MC_LUI		: std_logic := '0';
-	signal MC_MemtoReg	: std_logic_vector(1 downto 0);
+	signal MC_MemtoReg	: std_logic;
 	signal MC_ALUOp		: std_logic_vector(2 downto 0);
 	    
 	COMPONENT control 
@@ -104,7 +104,7 @@ architecture behaviour of functionalProcessor is
 		Jump		: out std_logic;
 		Branch		: out std_logic;
 		MemRead		: out std_logic;
-		MemtoReg	: out std_logic_vector(1 downto 0);
+		MemtoReg	: out std_logic;
 		MemWrite	: out std_logic;
 		AluSrc		: out std_logic;
 		RegWrite	: out std_logic;

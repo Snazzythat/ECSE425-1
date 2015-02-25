@@ -93,7 +93,7 @@ architecture behaviour of functionalProcessor is
 	signal MC_RegWrite	: std_logic	:= '0';
 	signal MC_NotZero	: std_logic := '0';
 	signal MC_LUI		: std_logic := '0';
-	signal MC_MemtoReg	: std_logic_vector(1 downto 0);
+	signal MC_MemtoReg	: std_logic;
 	signal MC_ALUOp		: std_logic_vector(2 downto 0);
 	    
 	COMPONENT control 
@@ -318,7 +318,7 @@ BEGIN
 	-----------------
 	
 	-- WriteData Mux 2-1 Component --
-	with MC_MemtoReg select
+	with ALUControlReadLOHI select
 		writeDataMux <= 
 			MemtoRegMux when "00",
 			reg_HI 		when "10",
