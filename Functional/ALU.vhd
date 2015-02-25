@@ -85,6 +85,11 @@ BEGIN
 			to_stdlogicvector(to_bitvector(dataa) sra to_integer(unsigned(shamt)))		WHEN "1010",
 			std_logic_vector(to_signed(addResult, 32)) 					WHEN OTHERS;
 			
+	WITH subResult SELECT
+		zero <=
+			'1' WHEN 0,
+			'0' WHEN OTHERS;
+			
 	-- MULTIPLEXER FOR HI OUTPUT
 	WITH control SELECT
 		HI <=

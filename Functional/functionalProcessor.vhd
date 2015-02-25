@@ -472,6 +472,7 @@ BEGIN
 						
 					else
 						currentInstruction <= "00100000000000000000000000000000"; -- add $0 $0 0
+						programCounter <= to_integer(signed(jump_mux));
 						state <= readInstruction1;
 						
 					end if;
