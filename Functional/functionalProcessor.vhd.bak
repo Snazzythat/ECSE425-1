@@ -23,7 +23,7 @@ architecture behaviour of functionalProcessor is
 	signal currentInstruction : std_logic_vector(Num_Bytes_in_Word*Num_Bits_in_Byte-1 downto 0);
 	
 	-- FSM --
-	type state_type is (init, readInstruction1, readInstruction2, processInstruction, loadData, storeData, dump, done);
+	type state_type is (init, readInstruction1, readInstruction2, processInstruction, loadData1, loadData2, storeData, dump, done);
 	signal state: state_type:=init;
 	
 	----------------------
@@ -47,11 +47,12 @@ architecture behaviour of functionalProcessor is
 	signal InstMem_dump 		: std_logic	:= '0';
 	signal InstMem_address	: integer:=0;
 	
-	-- Instruction Memory signal
+	-- Data Memory signal
 	signal DataMem_rd_ready 	: std_logic	:= '0';
 	signal DataMem_data 		: std_logic_vector(Num_Bytes_in_Word*Num_Bits_in_Byte-1 downto 0);
 	signal DataMem_init 		: std_logic	:= '0';
 	signal DataMem_dump 		: std_logic	:= '0';
+	signal DataMem_re 			: std_logic := '0';
 	signal DataMem_write_done	: std_logic;
 	signal DataMem_address		: integer;
  
@@ -59,7 +60,7 @@ architecture behaviour of functionalProcessor is
 		generic (
 			File_Address_Read 	: string :="Init.dat";
 			File_Address_Write 	: string :="MemCon.dat";
-			Mem_Size_in_Word 	: integer:=256;	
+			Mem_Size_in_Word 	: integer:=2048;	
 			Num_Bytes_in_Word	: integer:=4;
 			Num_Bits_in_Byte	: integer := 8; 
 			Read_Delay			: integer:=0; 
@@ -212,7 +213,7 @@ BEGIN
 	generic map (
 			File_Address_Read 	=>"Init.dat",
 			File_Address_Write 	=>"MemCon.dat",
-			Mem_Size_in_Word 	=>256,
+			Mem_Size_in_Word 	=>2048,
 			Num_Bytes_in_Word	=>4,
 			Num_Bits_in_Byte	=>8,
 			Read_Delay			=>0,
@@ -250,7 +251,7 @@ BEGIN
 			address 	=> DataMem_address,
 			Word_Byte 	=> '1', -- TODO: PLUG TO IMPLEMENT lb and sb
 			we 			=> MC_MemWrite,
-			re 			=> MC_MemRead,
+			re 			=> DataMem_re,
 			rd_ready 	=> DataMem_rd_ready,
 			wr_done   	=> DataMem_write_done,
 			data 		=> DataMem_data,          
@@ -431,6 +432,7 @@ BEGIN
 					InstMem_init 	<= '0';
 					DataMem_init	<= '0'; 
 					reg_init		<= '0';
+					DataMem_re		<= '0';
 					
 					InstMem_re 		<='1';
 					state <= readInstruction2;				
@@ -441,6 +443,7 @@ BEGIN
 					InstMem_init 	<= '0';
 					DataMem_init	<= '0';
 					reg_init		<= '0';
+					DataMem_re		<= '0';
 					InstMem_re 		<= '1';
 
 					-- state processing --
@@ -461,10 +464,11 @@ BEGIN
 					InstMem_init 	<= '0';
 					DataMem_init	<= '0';
 					reg_init		<= '0';
+					DataMem_re		<= '0';
 					InstMem_re 		<= '0';
 					
 					if (MC_MemRead = '1') then
-						state <= loadData;
+						state <= loadData1;
 						
 					elsif (MC_MemWrite = '1') then
 						state <= storeData;
@@ -477,19 +481,31 @@ BEGIN
 						
 					end if;
 					
-				when loadData =>
+				when loadData1 =>
+					-- state initialisation --
+					DataMem_data	<= ( others => '0');
+					InstMem_init 	<= '0';
+					DataMem_init	<= '0';
+					reg_init		<= '0';
+					DataMem_re		<= '1';
+					state			<= loadData2;
+					
+				when loadData2 =>
 				
 					-- state initialisation --
 					InstMem_init 	<= '0';
 					DataMem_init	<= '0';
 					reg_init		<= '0';
+					DataMem_re      <= '1';
 					
 					-- state processing --
 					if (DataMem_rd_ready = '1') then -- the output is ready on the memory bus
+						DataMem_re <= '0';
+						currentInstruction <= "00100000000000000000000000000000"; -- add $0 $0 0
 						state <= readInstruction1;
 					else
 					
-						state <= loadData; -- stay in this state till you see InstMem_rd_ready='1';
+						state <= loadData2; -- stay in this state till you see InstMem_rd_ready='1';
 					end if; 
 					
 				when storeData =>
@@ -498,6 +514,7 @@ BEGIN
 					InstMem_init 	<= '0';
 					DataMem_init	<= '0';
 					reg_init		<= '0'; 
+					DataMem_re		<= '0';
 					DataMem_dump	<= '0';
 					
 					if (DataMem_write_done = '1') then -- the output is ready on the memory bus
@@ -508,6 +525,7 @@ BEGIN
 					
 				when dump =>
 					DataMem_dump <= '1';
+					currentInstruction <= "00100000000000000000000000000000"; -- add $0 $0 0
 					state <= readInstruction1;
 				
 				when others =>
