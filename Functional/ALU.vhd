@@ -61,8 +61,8 @@ BEGIN
 			std_logic_vector(unsigned(sltResult) srl 31) 					WHEN "0111", -- The MSB is 1 if negative of 0 if positve
 			dataa NOR datab 								WHEN "1100",
 			dataa XOR datab 								WHEN "1101",
-			std_logic_vector(unsigned(dataa) sll to_integer(unsigned(shamt)))		WHEN "1000",
-			std_logic_vector(unsigned(dataa) srl to_integer(unsigned(shamt)))		WHEN "1001",
+			std_logic_vector(unsigned(datab) sll to_integer(unsigned(shamt)))		WHEN "1000",
+			std_logic_vector(unsigned(datab) srl to_integer(unsigned(shamt)))		WHEN "1001",
 			to_stdlogicvector(to_bitvector(dataa) sra to_integer(unsigned(shamt)))		WHEN "1010",
 			std_logic_vector(to_signed(addResult, 32)) 					WHEN OTHERS;
 			
