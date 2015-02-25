@@ -471,6 +471,7 @@ BEGIN
 						DataMem_data <= regData_2;
 						
 					else
+						currentInstruction <= "00100000000000000000000000000000"; -- add $0 $0 0
 						state <= readInstruction1;
 						
 					end if;
@@ -484,7 +485,6 @@ BEGIN
 					
 					-- state processing --
 					if (DataMem_rd_ready = '1') then -- the output is ready on the memory bus
-						
 						state <= readInstruction1;
 					else
 					
