@@ -146,19 +146,6 @@ begin
 			-- jal
 			when "000011" =>
 				null;
-<<<<<<< HEAD
-			-- mfhi	
-			when "010000" =>
-				RegWrite_reg <= '1';
-				RegDst_reg <= '1';
-				MemtoReg_reg <= "10";
-			-- mflo
-			when "010010" =>
-				RegWrite_reg <= '1';
-				RegDst_reg <= '1';
-				MemtoReg_reg <= "11";
-=======
->>>>>>> 263e7ab49376c98bc1a57bf2b203d1d965ffacdf
 			when others =>
 				null;
 		end case;

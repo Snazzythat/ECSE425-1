@@ -145,7 +145,8 @@ begin
 				ALUOp_reg	<= "000"; -- add
 			-- jal
 			when "000011" =>
-				null;
+				Jump_reg	<= '1';
+				ALUOp_reg	<= "000"; -- add
 			when others =>
 				null;
 		end case;
