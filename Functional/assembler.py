@@ -2,7 +2,7 @@
 removeComments = ""
 removeTag = ""
 tagDict = {}
-with open("bitwise.asm", "r+") as f:
+with open("MinMaxAvg.asm", "r+") as f:
 	for line in f:
 		line = line.partition('#')[0]
 		line = "".join([s for s in line.strip().splitlines(True) if s.strip()])
@@ -38,7 +38,7 @@ J={'op': 0, 'address': 0}
 #function that will extract what is contained inside brackets. This is used for the offset in the load and store instructions
 def extract(string, start='(', stop=')'):
 	return string[string.index(start)+1:string.index(stop)]
-m = open("bitwise.bin", "w")
+m = open("MinMaxAvg.bin", "w")
 
 for lineNum,line in enumerate(removeTag.splitlines()):
 # for each line the file we remove the brackets and replace them with a space and we then split the line and place each element in an array position
@@ -85,7 +85,6 @@ for lineNum,line in enumerate(removeTag.splitlines()):
 			elif (words[0] == 'beq' or words[0] == 'bne'):
 				offset = tagDict.get(words[3])
 				offset = ((offset/4) - lineNum - 1)
-				print offset
 				if(offset < 0) :
 					offset = 65536+offset
 				I['immediate']= '{0:016b}'.format(offset)
@@ -168,7 +167,7 @@ for lineNum,line in enumerate(removeTag.splitlines()):
 		J['op']=NCODE[W0]['op']
 		# we set the jump address by looking into the dictionary of tags 
 		jaddress = tagDict.get(words[1])
-		J['address']= '{0:026b}'.format(jaddress)
+		J['address']= '{0:026b}'.format(jaddress/4)
 		print str(J['op'])+ str(J['address'])
 #write this to the output dat file
 		m.write(str(J['op'])+ str(J['address'])+ '\n')

@@ -486,6 +486,7 @@ BEGIN
 					
 					-- state processing --
 					if (DataMem_rd_ready = '1') then -- the output is ready on the memory bus
+						currentInstruction <= "00100000000000000000000000000000"; -- add $0 $0 0
 						state <= readInstruction1;
 					else
 					
@@ -508,6 +509,7 @@ BEGIN
 					
 				when dump =>
 					DataMem_dump <= '1';
+					currentInstruction <= "00100000000000000000000000000000"; -- add $0 $0 0
 					state <= readInstruction1;
 				
 				when others =>

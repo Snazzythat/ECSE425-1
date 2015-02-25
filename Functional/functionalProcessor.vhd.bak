@@ -498,6 +498,7 @@ BEGIN
 					InstMem_init 	<= '0';
 					DataMem_init	<= '0';
 					reg_init		<= '0'; 
+					DataMem_dump	<= '0';
 					
 					if (DataMem_write_done = '1') then -- the output is ready on the memory bus
 						state <= dump; --write finished go to the dump state 
