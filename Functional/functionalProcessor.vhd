@@ -31,7 +31,6 @@ architecture behaviour of functionalProcessor is
 	----------------------
 
 	signal programCounter		: integer 	:= 0;
-	signal programCounter_reg	: integer;
 	signal programCounter_adr	: std_logic_vector(31 downto 0);
 	signal branch_adr			: std_logic_vector(31 downto 0);
 	signal branch_sel			: std_logic;	
@@ -46,6 +45,7 @@ architecture behaviour of functionalProcessor is
 	signal InstMem_data 		: std_logic_vector(Num_Bytes_in_Word*Num_Bits_in_Byte-1 downto 0);
 	signal InstMem_init 		: std_logic	:= '0';
 	signal InstMem_dump 		: std_logic	:= '0';
+	signal InstMem_address	: integer:=0;
 	
 	-- Instruction Memory signal
 	signal DataMem_rd_ready 	: std_logic	:= '0';
@@ -207,6 +207,7 @@ BEGIN
 	------------------------
 	-- Instruction Memory --
 	------------------------
+	InstMem_address <= to_integer(unsigned(jump_mux));
 	InstMem: Main_Memory 
 	generic map (
 			File_Address_Read 	=>"Init.dat",
@@ -219,7 +220,7 @@ BEGIN
 		 )
 		PORT MAP (
 			clk 		=> clock,
-			address 	=> programCounter,
+			address 	=> InstMem_address,
 			Word_Byte 	=> InstMem_word_byte,
 			we 			=> '0',
 			re 			=> InstMem_re,
@@ -238,7 +239,7 @@ BEGIN
 	generic map (
 			File_Address_Read 	=>"Init.dat",
 			File_Address_Write 	=>"MemData.dat",
-			Mem_Size_in_Word 	=>256,
+			Mem_Size_in_Word 	=>2048,
 			Num_Bytes_in_Word	=>4,
 			Num_Bits_in_Byte	=>8,
 			Read_Delay			=>0,
@@ -378,7 +379,7 @@ BEGIN
 	-- ALU Jump Component --
 	------------------------
 	ALU_2shift_databb <=  signext(29 downto 0) & "00";
-	
+	programCounter_adr <= std_logic_vector(to_unsigned(programCounter, 32));
 	ALUJump: ALU
 	PORT MAP(
 		dataa 	=> programCounter_adr,
@@ -445,7 +446,7 @@ BEGIN
 					-- state processing --
 					if (InstMem_rd_ready = '1') then -- the output is ready on the memory bus
 						currentInstruction 	<= InstMem_data;
-						programCounter 		<= programCounter + 4; -- update program counter
+						programCounter 		<= InstMem_address + 4; -- update program counter
 						InstMem_re 			<='0';
 						state <= processInstruction;
 					else
