@@ -235,11 +235,10 @@ BEGIN
 	-- Data Memory --
 	-----------------
 	DataMem_address <= to_integer(signed(ALU_Result));
-	
 	DataMem: Main_Memory 
 	generic map (
 			File_Address_Read 	=>"Init.dat",
-			File_Address_Write 	=>"MemData.dat",
+			File_Address_Write 	=>"MemCon.dat",
 			Mem_Size_in_Word 	=>2048,
 			Num_Bytes_in_Word	=>4,
 			Num_Bits_in_Byte	=>8,
@@ -249,7 +248,7 @@ BEGIN
 		PORT MAP (
 			clk 		=> clock,
 			address 	=> DataMem_address,
-			Word_Byte 	=> '1', -- TODO: PLUG TO IMPLEMENT lb and sb
+			Word_Byte 	=> InstMem_word_byte,
 			we 			=> MC_MemWrite,
 			re 			=> DataMem_re,
 			rd_ready 	=> DataMem_rd_ready,
@@ -433,9 +432,8 @@ BEGIN
 					DataMem_init	<= '0'; 
 					reg_init		<= '0';
 					DataMem_re		<= '0';
-					
 					InstMem_re 		<='1';
-					state <= readInstruction2;				
+					state 			<= readInstruction2;				
 				
 				when readInstruction2 =>
 					
@@ -469,6 +467,7 @@ BEGIN
 					
 					if (MC_MemRead = '1') then
 						state <= loadData1;
+						DataMem_re	<= '1';
 						
 					elsif (MC_MemWrite = '1') then
 						state <= storeData;
