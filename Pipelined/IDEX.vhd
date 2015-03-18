@@ -48,7 +48,6 @@ END IDEX;
 
 ARCHITECTURE ARCH OF IDEX IS
 
---WB
 signal RegWrite_tmp		: STD_LOGIC;
 signal MemtoReg_tmp		: STD_LOGIC;
 signal Branch_tmp		: STD_LOGIC;
