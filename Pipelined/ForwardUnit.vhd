@@ -5,8 +5,8 @@ USE ieee.numeric_std.all;
 ENTITY ForwardUnit IS
 	PORT
 	(
-		forwardA : out std_logic_vector(2 downto 0);
-		forwardB : out std_logic_vector(2 downto 0);
+		forwardA : out std_logic_vector(1 downto 0);
+		forwardB : out std_logic_vector(1 downto 0);
 		EXMEM_RegWrite : in std_logic;
 		EXMEM_RegRd : std_logic_vector(4 downto 0);
 		IDEX_RegRs : std_logic_vector(4 downto 0);
