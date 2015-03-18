@@ -32,14 +32,16 @@ ENTITY IDEX IS
 		readdata1_in	: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
 		readdata2_in	: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
 		signextend_in	: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
-		regdest1_in		: IN STD_LOGIC_VECTOR(4 DOWNTO 0);
-		regdest2_in		: IN STD_LOGIC_VECTOR(4 DOWNTO 0);
+		Rs_in		: IN STD_LOGIC_VECTOR(4 DOWNTO 0);
+		Rt_in		: IN STD_LOGIC_VECTOR(4 DOWNTO 0);
+		Rd_in		: IN STD_LOGIC_VECTOR(4 DOWNTO 0);
 		
 		readdata1_out	: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
 		readdata2_out	: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
 		signextend_out	: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
-		regdest1_out	: OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
-		regdest2_out	: OUT STD_LOGIC_VECTOR(4 DOWNTO 0)
+		Rs_out	: OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
+		Rt_out	: OUT STD_LOGIC_VECTOR(4 DOWNTO 0);
+		Rd_out	: OUT STD_LOGIC_VECTOR(4 DOWNTO 0)
 
 	);
 END IDEX;
@@ -58,8 +60,10 @@ signal ALUsrc_tmp		: STD_LOGIC;
 signal readdata1_tmp		: STD_LOGIC_VECTOR(31 DOWNTO 0);
 signal readdata2_tmp	: STD_LOGIC_VECTOR(31 DOWNTO 0);
 signal signextend_tmp	: STD_LOGIC_VECTOR(31 DOWNTO 0);
-signal regdest1_tmp		: STD_LOGIC_VECTOR(4 DOWNTO 0);
-signal regdest2_tmp		: STD_LOGIC_VECTOR(4 DOWNTO 0);
+signal Rs_tmp		: STD_LOGIC_VECTOR(4 DOWNTO 0);
+signal Rt_tmp		: STD_LOGIC_VECTOR(4 DOWNTO 0);
+signal Rd_tmp		: STD_LOGIC_VECTOR(4 DOWNTO 0);
+
 
 BEGIN
 
@@ -77,8 +81,9 @@ begin
 		readdata1_out <= readdata1_tmp;	
 		readdata2_out <= readdata2_tmp;	
 		signextend_out <= signextend_tmp;
-		regdest1_out <= regdest1_tmp;	
-		regdest2_out <= regdest2_tmp;
+		Rs_out <= Rs_tmp;	
+		Rt_out <= Rt_tmp;
+		Rd_out <= Rd_tmp;
 		
 		RegWrite_tmp <= RegWrite_in;
 		MemtoReg_tmp <= MemtoReg_in;
@@ -91,8 +96,9 @@ begin
 		readdata1_tmp <= readdata1_in;	
 		readdata2_tmp <= readdata2_in;	
 		signextend_tmp <= signextend_in;	
-		regdest1_tmp <= regdest1_in;		
-		regdest2_tmp <= regdest2_in;
+		Rs_tmp <= Rs_in;	
+		Rt_tmp <= Rt_in;
+		Rd_tmp <= Rd_in;
 		
 	end if;
 end process;
