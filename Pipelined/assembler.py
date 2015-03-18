@@ -44,6 +44,14 @@ R={'op': 0, 'rs': 0, 'rt': 0,'rd': 0,'shamt': 0, 'funct': 0}
 I={'op': 0, 'rs': 0, 'rt': 0, 'immediate': 0}
 J={'op': 0, 'address': 0}
 
+#function to check if int
+def isInt(value):
+  try:
+    int(value)
+    return True
+  except ValueError:
+    return False
+
 #function that will extract what is contained inside brackets. This is used for the offset in the load and store instructions
 def extract(string, start='(', stop=')'):
 	return string[string.index(start)+1:string.index(stop)]
@@ -73,7 +81,9 @@ for lineNum,line in enumerate(removeTag.splitlines()):
 					I['rt']='{0:05b}'.format(i)
 				if (inside [0]== dollarsign + `i`):
 					I['rs']='{0:05b}'.format(i)
-				for j in range (-32768, 32767):
+				
+				if( isInt(offset[0]) ):
+					j = int(offset[0])
 					if (offset[0]== `j`):
 						if (len(words) >= 4 and words [3]== `j`):
 							if( j < 0) :
@@ -84,7 +94,9 @@ for lineNum,line in enumerate(removeTag.splitlines()):
 				I['rs']='{0:05b}'.format(0)
 				if (words [1]== dollarsign + `i`):
 					I['rt']='{0:05b}'.format(i)
-				for j in range (-32768, 32767):
+
+				if( isInt(offset[0]) ):
+					j = int(offset[0])
 					if (len(words) >= 3 and words [2]== `j`):
 						if (len(words) >= 4 and words [3]== `j`):
 							if( j < 0) :
@@ -107,8 +119,10 @@ for lineNum,line in enumerate(removeTag.splitlines()):
 					I['rt']='{0:05b}'.format(i)
 				if (words [2]== dollarsign + `i`):
 					I['rs']='{0:05b}'.format(i)
-				for j in range (-32768, 32767):				
-					if (len(words) >= 4 and words [3]== `j`):
+
+				if (len(words) >= 4):
+					if( isInt(words [3]) ):
+						j = int(words [3])
 						if( j < 0) :
 							j = 65536+j
 						I['immediate']='{0:016b}'.format(j)
