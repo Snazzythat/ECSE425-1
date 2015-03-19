@@ -334,6 +334,7 @@ architecture behaviour of Sandbox is
 	signal IDEX_Rs			: STD_LOGIC_VECTOR(4 DOWNTO 0);
 	signal IDEX_Rt			: STD_LOGIC_VECTOR(4 DOWNTO 0);
 	signal IDEX_Rd			: STD_LOGIC_VECTOR(4 DOWNTO 0);
+	signal IDEX_RegisterRd : STD_LOGIC_VECTOR (4 DOWNTO 0);	
 
 	--ALU Control
 	signal operation : std_logic_vector(3 downto 0);
@@ -375,7 +376,6 @@ architecture behaviour of Sandbox is
 	signal MEMWB_LO 		: STD_LOGIC_VECTOR (31 DOWNTO 0);
 	signal MEMWB_zero		: STD_LOGIC;
 	signal MEMWB_Rd			: STD_LOGIC_VECTOR(4 DOWNTO 0);
-
 
 	--Misc.
 	signal writeDataMux : std_logic_vector(31 downto 0);
@@ -606,7 +606,7 @@ BEGIN
 		forwardB 		=> forwardB
 	);
 
-	--Select Data A TODO: add correct signals for 01, 10
+	--MUX for Data A
 	WITH forwardA SELECT
 		dataa <=
 			IDEX_readdata1 			WHEN "00",
@@ -614,13 +614,19 @@ BEGIN
 			EXMEM_result			WHEN "10",
 			"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"		WHEN OTHERS;
 	
-	--Select Data B TODO: add correct signals for 01, 10
+	--MUX for Data B
 	WITH forwardB SELECT
 		datab <=
 			IDEX_readdata2 			WHEN "00",
 			MemtoRegMux				WHEN "01",
 			EXMEM_result			WHEN "10",
 			"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"		WHEN OTHERS;
+
+	--MUX for IDEX_RegisterRd
+	WITH IDEX_RegDst SELECT
+		IDEX_RegisterRd <=
+			IDEX_Rt		WHEN '0',
+			IDEX_Rd		WHEN OTHERS;
 	
 	EXMEM_inst: EXMEM PORT MAP
 	(
@@ -636,7 +642,7 @@ BEGIN
 		LO_in 			=> LO,
 		zero_in			=> zero,
 		datab_in 		=> datab,
-		Rd_in			=> IDEX_Rd,
+		Rd_in			=> IDEX_RegisterRd,
 
 		RegWrite_out	=> EXMEM_RegWrite,
 		MemtoReg_out	=> EXMEM_MemtoReg,
