@@ -278,8 +278,8 @@ architecture behaviour of Sandbox is
 	signal stall : std_logic := '0';
 
 	-- Instruction Memory signal
-	type state_type is (init, read_inst1, read_inst2);
-	signal state:	state_type:=init;
+	type inst_state_type is (init, read_inst1, read_inst2);
+	signal inst_state:	inst_state_type:=init;
 	signal InstMem_word_byte 	: std_logic	:= '1';
 	signal InstMem_re 			: std_logic := '0';
 	signal InstMem_rd_ready 	: std_logic	:= '0';
@@ -289,6 +289,10 @@ architecture behaviour of Sandbox is
 	signal InstMem_address		: integer:=0;
 
 	-- Data Memory signals
+	type data_state_type is (init, idle, read_mem1, read_mem2, write_mem1, write_mem2, dum, fin);
+	signal data_state:	data_state_type:=init;
+	signal data : std_logic_vector(31 downto 0) := (others => 'Z');
+	signal MDR: std_logic_vector(31 downto 0);
 	signal DataMem_word_byte 	: std_logic	:= '1';
 	signal DataMem_re 			: std_logic := '0';
 	signal DataMem_rd_ready 	: std_logic	:= '0';
@@ -667,6 +671,29 @@ BEGIN
 		Rd_out			=> EXMEM_Rd		
 	);
 
+	DataMem: Main_Memory 
+	generic map (
+			File_Address_Read 	=>"Init.dat",
+			File_Address_Write 	=>"MemData.dat",
+			Mem_Size_in_Word 	=>2048,
+			Num_Bytes_in_Word	=>4,
+			Num_Bits_in_Byte	=>8,
+			Read_Delay			=>0,
+			Write_Delay			=>0
+		 )
+		PORT MAP (
+			clk 		=> clk_mem,
+			address 	=> DataMem_address,
+			Word_Byte 	=> DataMem_word_byte,
+			we 			=> DataMem_we,
+			re 			=> DataMem_re,
+			rd_ready 	=> DataMem_rd_ready,
+			wr_done		=> DataMem_wr_done,
+			data 		=> data,          
+			initialize 	=> DataMem_init,
+			dump 		=> DataMem_dump
+        );
+
 
 	MEMWB_inst: MEMWB PORT MAP
 	(
@@ -676,7 +703,7 @@ BEGIN
 		MemtoReg_in		=> EXMEM_MemtoReg,
 		wr_done_in		=> DataMem_wr_done,
 		rd_ready_in		=> DataMem_rd_ready,
-		data_in 		=> DataMem_data,
+		data_in 		=> MDR,
 		result_in 		=> EXMEM_result,
 		HI_in 			=> EXMEM_HI,
 		LO_in 			=> EXMEM_LO,
@@ -701,32 +728,94 @@ BEGIN
 			MEMWB_result when '0',
 			(others => 'X') when others;
 
-	   -- Stimulus process
-   	instruction_fetch: process (clk, clk_mem, InstMem_rd_ready)
+	-- Stimulus process
+   	instruction_proc: process (clk, clk_mem)
    	begin		
 		if(clk_mem'event and clk_mem='1') then
-			case state is
+			case inst_state is
 				when init =>
 					PC_Write <= '0';
 					InstMem_init <= '1'; --triggerd.
 					PC_Write <= '0';
-					state <= read_inst1;					
+					inst_state <= read_inst1;					
 				when read_inst1 =>
 					PC_Write <= '1';
 					InstMem_re <= '1';
 					InstMem_init <= '0';
 					if(InstMem_rd_ready = '1') then
-						InstMem_re <= '0';
+						--InstMem_re <= '0';
 						address_in <= std_logic_vector(to_unsigned(to_integer(unsigned(PC_address)) + 4,32));
-						state <= read_inst2;
+						inst_state <= read_inst2;
 					end if;
 				when others =>
 			end case;
 		end if;
-		if(clk'event and clk='1' and state = read_inst2) then
-			state <= read_inst1;
+		if(clk'event and clk='1' and inst_state = read_inst2) then
+			inst_state <= read_inst1;
 		end if;
    	end process;
+
+   data_proc: process (clk_mem,clk)
+   begin		
+      if(clk_mem'event and clk_mem='1') then
+			data <= (others=>'Z');
+			case data_state is
+				when init =>
+					DataMem_init <= '1'; --triggerd.
+					data_state <= idle;
+				when idle =>
+					DataMem_init <= '0'; 
+					DataMem_re<='0';
+					DataMem_we<='0';
+					DataMem_dump <= '0'; 
+					if(EXMEM_MemRead = '1') then
+						DataMem_address <= to_integer(unsigned(EXMEM_result));
+						DataMem_we <='0';
+						DataMem_re <='1';
+						DataMem_init <= '0';
+						DataMem_dump <= '0';
+						data_state <= read_mem1;
+					end if;
+					if(EXMEM_MemWrite = '1') then
+						DataMem_address <= to_integer(unsigned(EXMEM_result));
+						DataMem_we <='1';
+						DataMem_re <='0';
+						DataMem_init <= '0';
+						DataMem_dump <= '0';
+						data <= EXMEM_datab;
+						data_state <= write_mem1;
+					end if;
+				when read_mem1 =>
+				  if (DataMem_rd_ready = '1') then -- the output is ready on the memory bus
+						MDR <= data;
+						data_state <= idle; --read finished go to test state write 
+						DataMem_re <='0';
+					else
+						data_state <= read_mem1; -- stay in this state till you see rd_ready='1';
+					end if;
+				when write_mem1 =>					
+					if (DataMem_wr_done = '1') then -- the output is ready on the memory bus
+						data_state <= dum; --write finished go to the dump state 
+					else
+						data_state <= write_mem1; -- stay in this state till you see rd_ready='1';
+					end if;	
+					
+				when dum =>
+					DataMem_init <= '0'; 
+					DataMem_re<='0';
+					DataMem_we<='0';
+					DataMem_dump <= '1'; --triggerd
+					data_state <= idle;
+				when fin =>
+					DataMem_init <= '0'; 
+					DataMem_re<='0';
+					DataMem_we<='0';
+					DataMem_dump <= '0'; 
+				when others =>
+			end case;
+			
+		end if;
+   end process;
 
 end behaviour;
 
