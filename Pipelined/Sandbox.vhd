@@ -347,6 +347,8 @@ architecture behaviour of Sandbox is
 	signal operation : std_logic_vector(3 downto 0);
 	signal writeLOHI : std_logic;
 	signal readLOHI	 : std_logic_vector(1 downto 0);
+	signal readLOHImux : std_logic_vector(31 downto 0);
+
 
 	--ALU signals
 	signal 	dataa 	: STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -642,6 +644,14 @@ BEGIN
 		LO 		=> LO,
 		zero	=> zero
 	);
+
+	-- WriteData Mux 2-1 Component --
+	with readLOHI select
+		readLOHImux <= 
+			result 		when "00",
+			reg_HI 		when "10",
+			reg_LO 		when "11",
+			(others => 'X') when others;
 	
 	EXMEM_inst: EXMEM PORT MAP
 	(
@@ -652,7 +662,7 @@ BEGIN
 		Branch_in		=> IDEX_Branch,
 		MemRead_in		=> IDEX_MemRead,
 		MemWrite_in		=> IDEX_MemWrite,
-		result_in 		=> result,
+		result_in 		=> readLOHImux,
 		HI_in 			=> HI,
 		LO_in 			=> LO,
 		zero_in			=> zero,
