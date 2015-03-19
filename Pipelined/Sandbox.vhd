@@ -105,7 +105,8 @@ architecture behaviour of Sandbox is
 		IFID_RegRs : in std_logic_vector(4 downto 0);
 		IFID_RegRt : in std_logic_vector(4 downto 0);
 		IFID_Write : out std_logic;
-		PC_Write : out std_logic
+		PC_Write : out std_logic;
+		stall :	out std_logic
 	);
 	END COMPONENT;
 	
@@ -274,6 +275,7 @@ architecture behaviour of Sandbox is
 	signal PC_Write : std_logic := '0';
 	signal address_in : std_logic_vector(31 downto 0);
 	signal PC_address : std_logic_vector(31 downto 0);
+	signal stall : std_logic := '0';
 
 	-- Instruction Memory signal
 	type state_type is (init, read_inst1, read_inst2);
@@ -344,6 +346,7 @@ architecture behaviour of Sandbox is
 	--ALU signals
 	signal 	dataa 	: STD_LOGIC_VECTOR (31 DOWNTO 0);
 	signal	datab 	: STD_LOGIC_VECTOR (31 DOWNTO 0);
+	signal	AluSrcMux : STD_LOGIC_VECTOR (31 DOWNTO 0);
 	signal	shamt	: STD_LOGIC_VECTOR (4 DOWNTO 0);
 	signal	result 	: STD_LOGIC_VECTOR (31 DOWNTO 0);
 	signal	HI 		: STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -379,12 +382,12 @@ architecture behaviour of Sandbox is
 
 	--Misc.
 	signal writeDataMux : std_logic_vector(31 downto 0);
-	signal RegDstMux	: std_logic_vector(4 downto 0);
 	signal MemtoRegMux 	: STD_LOGIC_VECTOR (31 DOWNTO 0);
 	signal ALU_LO		: std_logic_vector(31 downto 0);
 	signal ALU_HI		: std_logic_vector(31 downto 0);
 	signal reg_HI : std_logic_vector(31 downto 0);
 	signal reg_LO : std_logic_vector(31 downto 0);
+	signal hazard_control : std_logic_vector(9 downto 0);
 
 BEGIN
 
@@ -400,14 +403,13 @@ BEGIN
 	 -- Mem Clock process definitions
 	mem_clk_process :process
 	begin
-		clk_mem <= '1';
-		wait for clk_period/8;
 		clk_mem <= '0';
+		wait for clk_period/8;
+		clk_mem <= '1';
 		wait for clk_period/8;
 	end process;
 	
 
-	address_in <= std_logic_vector(to_unsigned(to_integer(unsigned(PC_address)) + 4,32));
 	PC_inst: ProgramCounter	PORT MAP
 	(
 		clock		=> clk,
@@ -473,12 +475,6 @@ BEGIN
 		ALUOp		=> ALUOp
 	);
 
-	with RegDst select
-		RegDstMux <= 
-			IFID_instruction(20 downto 16) when '0',
-			IFID_instruction(15 downto 11) when '1',
-			(others => 'X') when others;
-
 	---------------------------
 	-- Registers Component --
 	---------------------------- 
@@ -488,9 +484,9 @@ BEGIN
 		init		=> '0',
 		read_reg_1	=> IFID_instruction(25 downto 21),
 		read_reg_2	=> IFID_instruction(20 downto 16),
-		write_reg	=> RegDstMux,
+		write_reg	=> MEMWB_Rd,
 		writedata	=> MemtoRegMux,
-		regwrite	=> RegWrite,
+		regwrite	=> MEMWB_RegWrite,
 		readdata_1	=> readdata1,
 		readdata_2	=> readdata2,
 		writeLOHI	=> writeLOHI,
@@ -531,21 +527,29 @@ BEGIN
 		IFID_RegRs 	=> Rs,
 		IFID_RegRt 	=> Rt,
 		IFID_Write 	=> IFID_Write,
-		PC_Write 	=> PC_Write
+		PC_Write 	=> PC_Write,
+		stall 		=> stall
+
 	);
+
+	with stall select
+		hazard_control <= 
+			RegWrite & MemtoReg & Branch & MemRead & MemWrite & ALUop & RegDst & AluSrc when '0',
+			"0000000000" when '1',
+			(others => 'X') when others;
 
 	IDEX_inst: IDEX PORT MAP
 	(
 		clock			=> clk,
 		
-		RegWrite_in		=> RegWrite,
-		MemtoReg_in		=> MemtoReg,
-		Branch_in		=> Branch,
-		MemRead_in		=> MemRead,
-		MemWrite_in		=> MemWrite,
-		ALUop_in		=> ALUop,
-		RegDst_in		=> RegDst,
-		ALUsrc_in		=> ALUsrc,
+		RegWrite_in		=> hazard_control(9),
+		MemtoReg_in		=> hazard_control(8),
+		Branch_in		=> hazard_control(7),
+		MemRead_in		=> hazard_control(6),
+		MemWrite_in		=> hazard_control(5),
+		ALUop_in		=> hazard_control(4 downto 2),
+		RegDst_in		=> hazard_control(1),
+		ALUsrc_in		=> hazard_control(0),
 		readdata1_in	=> readdata1,
 		readdata2_in	=> readdata2,
 		signextend_in	=> signextend,
@@ -580,19 +584,6 @@ BEGIN
 		readLOHI	=> readLOHI	
 	);
 
-	ALU_inst: ALU PORT MAP
-	(
-		dataa 	=> dataa, 
-		datab 	=> datab, 
-		control => operation,
-		shamt	=> IDEX_signextend(10 downto 6), 
-
-		result 	=> result,
-		HI 		=> HI,
-		LO 		=> LO,
-		zero	=> zero
-	);
-
 	ForwardUnit_inst: ForwardUnit PORT MAP
 	(
 		IDEX_RegRs 		=> IDEX_Rs,
@@ -622,11 +613,30 @@ BEGIN
 			EXMEM_result			WHEN "10",
 			"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"		WHEN OTHERS;
 
+	with IDEX_ALUsrc select
+		AluSrcMux <= 
+					datab when '0',
+					IDEX_signextend when '1',
+					"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"		WHEN OTHERS;
+
 	--MUX for IDEX_RegisterRd
 	WITH IDEX_RegDst SELECT
 		IDEX_RegisterRd <=
 			IDEX_Rt		WHEN '0',
 			IDEX_Rd		WHEN OTHERS;
+
+	ALU_inst: ALU PORT MAP
+	(
+		dataa 	=> dataa, 
+		datab 	=> AluSrcMux, 
+		control => operation,
+		shamt	=> IDEX_signextend(10 downto 6), 
+
+		result 	=> result,
+		HI 		=> HI,
+		LO 		=> LO,
+		zero	=> zero
+	);
 	
 	EXMEM_inst: EXMEM PORT MAP
 	(
@@ -687,8 +697,8 @@ BEGIN
 	
 	with MEMWB_MemtoReg select
 		MemtoRegMux <= 
-			MEMWB_data when '0',
-			MEMWB_result when '1',
+			MEMWB_data when '1',
+			MEMWB_result when '0',
 			(others => 'X') when others;
 
 	   -- Stimulus process
@@ -697,6 +707,7 @@ BEGIN
 		if(clk_mem'event and clk_mem='1') then
 			case state is
 				when init =>
+					PC_Write <= '0';
 					InstMem_init <= '1'; --triggerd.
 					PC_Write <= '0';
 					state <= read_inst1;					
@@ -706,6 +717,7 @@ BEGIN
 					InstMem_init <= '0';
 					if(InstMem_rd_ready = '1') then
 						InstMem_re <= '0';
+						address_in <= std_logic_vector(to_unsigned(to_integer(unsigned(PC_address)) + 4,32));
 						state <= read_inst2;
 					end if;
 				when others =>
@@ -717,3 +729,7 @@ BEGIN
    	end process;
 
 end behaviour;
+
+
+
+
