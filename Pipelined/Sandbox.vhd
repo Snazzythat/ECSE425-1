@@ -495,8 +495,8 @@ BEGIN
 		readdata_1	=> readdata1,
 		readdata_2	=> readdata2,
 		writeLOHI	=> writeLOHI,
-		LOin		=> ALU_LO,
-		HIin		=> ALU_HI,
+		LOin		=> LO,
+		HIin		=> HI,
 		LOout		=> reg_LO,
 		HIout		=> reg_HI
 	);
@@ -581,7 +581,7 @@ BEGIN
 
 	ALU_Control_inst: ALU_Control PORT MAP
 	(
-		ALUOp		=> ALUop,
+		ALUOp		=> IDEX_ALUop,
 		funct 		=> IDEX_signextend(5 downto 0),
 
 		operation	=> operation,
