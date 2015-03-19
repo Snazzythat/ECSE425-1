@@ -409,9 +409,9 @@ BEGIN
 	mem_clk_process :process
 	begin
 		clk_mem <= '0';
-		wait for clk_period/8;
+		wait for clk_period/16;
 		clk_mem <= '1';
-		wait for clk_period/8;
+		wait for clk_period/16;
 	end process;
 	
 
@@ -759,14 +759,14 @@ BEGIN
    data_proc: process (clk_mem,clk)
    begin		
       if(clk_mem'event and clk_mem='1') then
-			data <= (others=>'Z');
 			case data_state is
 				when init =>
 					DataMem_init <= '1'; --triggerd.
 					data_state <= idle;
 					RegInit <='1';
 				when idle =>
-				  RegInit <='0';
+					RegInit <='0';
+					data <= (others=>'Z');
 					DataMem_init <= '0'; 
 					DataMem_re<='0';
 					DataMem_we<='0';
@@ -788,27 +788,12 @@ BEGIN
 						data <= EXMEM_datab;
 						data_state <= write_mem1;
 					end if;
-				when read_mem1 =>
-				  if (DataMem_rd_ready = '1') then -- the output is ready on the memory bus
-						MDR <= data;
-						data_state <= idle; --read finished go to test state write 
-						DataMem_re <='0';
-					else
-						data_state <= read_mem1; -- stay in this state till you see rd_ready='1';
-					end if;
 				when write_mem1 =>					
 					if (DataMem_wr_done = '1') then -- the output is ready on the memory bus
 						data_state <= dum; --write finished go to the dump state 
 					else
 						data_state <= write_mem1; -- stay in this state till you see rd_ready='1';
 					end if;	
-					
-				when dum =>
-					DataMem_init <= '0'; 
-					DataMem_re<='0';
-					DataMem_we<='0';
-					DataMem_dump <= '1'; --triggerd
-					data_state <= idle;
 				when fin =>
 					DataMem_init <= '0'; 
 					DataMem_re<='0';
@@ -817,6 +802,26 @@ BEGIN
 				when others =>
 			end case;
 			
+		end if;
+		if(clk'event and clk = '1') then
+			case data_state is
+				when dum =>
+					DataMem_init <= '0'; 
+					DataMem_re<='0';
+					DataMem_we<='0';
+					DataMem_dump <= '1'; --triggerd
+					data_state <= idle;
+
+				when read_mem1 =>
+				  if (DataMem_rd_ready = '1') then -- the output is ready on the memory bus
+						MDR <= data;
+						data_state <= idle; --read finished go to test state write 
+						DataMem_re <='0';
+					else
+						data_state <= read_mem1; -- stay in this state till you see rd_ready='1';
+					end if;
+				when others =>
+			end case;
 		end if;
    end process;
 
