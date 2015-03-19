@@ -55,6 +55,7 @@ begin
 	if(MEMWB_RegWrite = '1'
 		and(MEMWB_RegRd /= "00000")
 		and(not(EXMEM_RegWrite = '1' and (EXMEM_RegRd /= "00000")		and (EXMEM_RegRd = IDEX_RegRt)))
+
 		and (MEMWB_RegRd = IDEX_RegRt)) 
 		then
 			forwardB <= "01";

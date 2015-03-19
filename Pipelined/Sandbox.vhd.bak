@@ -303,7 +303,7 @@ architecture behaviour of Sandbox is
 	signal DataMem_dump 		: std_logic	:= '0';
 	signal DataMem_address		: integer:=0;
 
-  signal RegInit : std_logic :='0';
+  signal RegIni : std_logic :='0';
 	signal RegWrite	: std_logic;
 	signal MemtoReg	: std_logic;
 	signal Branch	: std_logic;
@@ -486,7 +486,7 @@ BEGIN
 	register_file : registers
 	PORT MAP (
 		clock		=> clk,
-		init		=> RegInit,
+		init		=> '0',
 		read_reg_1	=> IFID_instruction(25 downto 21),
 		read_reg_2	=> IFID_instruction(20 downto 16),
 		write_reg	=> MEMWB_Rd,
@@ -764,9 +764,7 @@ BEGIN
 				when init =>
 					DataMem_init <= '1'; --triggerd.
 					data_state <= idle;
-					RegInit <='1';
 				when idle =>
-				  RegInit <='0';
 					DataMem_init <= '0'; 
 					DataMem_re<='0';
 					DataMem_we<='0';
