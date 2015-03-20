@@ -63,7 +63,6 @@ BEGIN
 	--Data Mem
 	wr_done_tmp <= wr_done_in;
 	rd_ready_tmp <= rd_ready_in;
-	data_tmp <= data_in;   
 	--ALU
 	result_tmp <= result_in;
 	HI_tmp <= HI_in;
@@ -71,6 +70,14 @@ BEGIN
 	zero_tmp <= zero_in;
 	
 	Rd_tmp <= Rd_in;
+
+
+data_buffer: process(datab_in)
+begin
+	if(datab_in /= "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ") then
+		datab_tmp <= datab_in;
+	end if;
+end process;
 
 IDIF: process (clock)
 begin

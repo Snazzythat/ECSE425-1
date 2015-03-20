@@ -21,7 +21,6 @@ ENTITY EXMEM IS
 		zero_in			: IN STD_LOGIC;
 		datab_in 		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 
-    address_in: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
 		Rd_in			: IN STD_LOGIC_VECTOR(4 DOWNTO 0);
 
 		--WB
@@ -38,7 +37,6 @@ ENTITY EXMEM IS
 		zero_out		: OUT STD_LOGIC;
 		datab_out 		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 
-    address_out: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
 		Rd_out			: OUT STD_LOGIC_VECTOR(4 DOWNTO 0)
 	);
 END EXMEM;
@@ -59,7 +57,6 @@ signal LO_tmp 			: STD_LOGIC_VECTOR (31 DOWNTO 0);
 signal zero_tmp			: STD_LOGIC;
 signal datab_tmp 		: STD_LOGIC_VECTOR (31 DOWNTO 0);
 
-signal address_tmp: STD_LOGIC_VECTOR(31 DOWNTO 0);
 signal Rd_tmp			: STD_LOGIC_VECTOR(4 DOWNTO 0);	
 
 BEGIN
@@ -75,16 +72,9 @@ BEGIN
 	HI_tmp <= HI_in;
 	LO_tmp <= LO_in;
 	zero_tmp <= zero_in;
+	datab_tmp <= datab_in;
 
-  address_tmp <= address_in;
 	Rd_tmp <= Rd_in;
-
-data_buffer: process(datab_in)
-begin
-	if(datab_in /= "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ") then
-		datab_tmp <= datab_in;
-	end if;
-end process;
 
 IDIF: process (clock)
 begin
@@ -103,7 +93,6 @@ begin
 		zero_out <= zero_tmp;
 		datab_out <= datab_tmp;
 
-    address_out <= address_tmp;
 		Rd_out <= Rd_tmp;
 	end if;
 end process;
