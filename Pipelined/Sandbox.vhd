@@ -137,6 +137,7 @@ architecture behaviour of Sandbox is
 		RegDst_out		: OUT STD_LOGIC;
 		ALUsrc_out		: OUT STD_LOGIC;
 		
+		address_in : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
 		readdata1_in	: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
 		readdata2_in	: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
 		signextend_in	: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -144,6 +145,7 @@ architecture behaviour of Sandbox is
 		Rt_in		: IN STD_LOGIC_VECTOR(4 DOWNTO 0);
 		Rd_in		: IN STD_LOGIC_VECTOR(4 DOWNTO 0);
 		
+		address_out: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
 		readdata1_out	: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
 		readdata2_out	: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
 		signextend_out	: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -213,7 +215,8 @@ architecture behaviour of Sandbox is
 		LO_in 			: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
 		zero_in			: IN STD_LOGIC;
 		datab_in 		: IN STD_LOGIC_VECTOR (31 DOWNTO 0);
-
+  
+    address_in: IN STD_LOGIC_VECTOR(31 DOWNTO 0);
 		Rd_in			: IN STD_LOGIC_VECTOR(4 DOWNTO 0);
 
 		--WB
@@ -230,6 +233,7 @@ architecture behaviour of Sandbox is
 		zero_out		: OUT STD_LOGIC;
 		datab_out 		: OUT STD_LOGIC_VECTOR (31 DOWNTO 0);
 
+    address_out: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
 		Rd_out			: OUT STD_LOGIC_VECTOR(4 DOWNTO 0)
 	);
 	END component;
@@ -335,6 +339,7 @@ architecture behaviour of Sandbox is
 	signal IDEX_ALUop	 : std_logic_vector(2 downto 0);
 	signal IDEX_RegDst	 : std_logic;
 	signal IDEX_ALUsrc	 : std_logic;
+	signal IDEX_address : STD_LOGIC_VECTOR (31 DOWNTO 0);
 	signal IDEX_readdata1	: STD_LOGIC_VECTOR(31 DOWNTO 0);
 	signal IDEX_readdata2	: STD_LOGIC_VECTOR(31 DOWNTO 0);
 	signal IDEX_signextend	: STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -361,6 +366,12 @@ architecture behaviour of Sandbox is
 	--Forward Unit signals
 	signal forwardA : std_logic_vector(1 downto 0);
 	signal forwardB : std_logic_vector(1 downto 0);
+	
+	--Branch Jump signals
+	signal ALU_2shift_databb : STD_LOGIC_VECTOR (31 DOWNTO 0);
+	signal branch_adr : STD_LOGIC_VECTOR (31 DOWNTO 0);
+	signal PCSrc : STD_LOGIC;
+	signal branch_mux_out: STD_LOGIC_VECTOR (31 DOWNTO 0);
 
 	signal EXMEM_RegWrite	: STD_LOGIC;
 	signal EXMEM_MemtoReg	: STD_LOGIC;
@@ -372,6 +383,7 @@ architecture behaviour of Sandbox is
 	signal EXMEM_LO 		: STD_LOGIC_VECTOR (31 DOWNTO 0);
 	signal EXMEM_zero		: STD_LOGIC;
 	signal EXMEM_datab 		: STD_LOGIC_VECTOR (31 DOWNTO 0);
+	signal EXMEM_address : STD_LOGIC_VECTOR (31 DOWNTO 0);
 	signal EXMEM_Rd			: STD_LOGIC_VECTOR (4 DOWNTO 0);
 
 	signal MEMWB_RegWrite	: STD_LOGIC;
@@ -555,6 +567,7 @@ BEGIN
 		ALUop_in		=> hazard_control(4 downto 2),
 		RegDst_in		=> hazard_control(1),
 		ALUsrc_in		=> hazard_control(0),
+		address_in => IFID_address,
 		readdata1_in	=> readdata1,
 		readdata2_in	=> readdata2,
 		signextend_in	=> signextend,
@@ -570,6 +583,7 @@ BEGIN
 		ALUop_out		=> IDEX_ALUop,
 		RegDst_out		=> IDEX_RegDst,
 		ALUsrc_out		=> IDEX_ALUsrc,
+	  address_out => IDEX_address,
 		readdata1_out	=> IDEX_readdata1,
 		readdata2_out	=> IDEX_readdata2,
 		signextend_out	=> IDEX_signextend,
@@ -643,6 +657,30 @@ BEGIN
 		zero	=> zero
 	);
 	
+	------------------------
+	-- ALU Jump Component --
+	------------------------
+	ALU_2shift_databb <=  IDEX_signextend(29 downto 0) & "00";
+	ALUJump: ALU
+	PORT MAP(
+		dataa 	=> IDEX_address,
+		datab 	=> ALU_2shift_databb,
+		control => "0010", --add
+		shamt => IDEX_signextend(10 downto 6),
+		result 	=> branch_adr
+	);
+	
+	PCSrc <= EXMEM_Branch AND EXMEM_zero; -- select line for branch mux
+	
+	------------------------------
+	-- branch Mux 2-1 Component --
+	------------------------------
+	with PCSrc select
+		address_in <= 
+			PC_address when '0',
+			EXMEM_address when '1',
+			(others => 'X') when others;
+	
 	EXMEM_inst: EXMEM PORT MAP
 	(
 		clock			=> clk,
@@ -657,6 +695,7 @@ BEGIN
 		LO_in 			=> LO,
 		zero_in			=> zero,
 		datab_in 		=> datab,
+		address_in => branch_adr,
 		Rd_in			=> IDEX_RegisterRd,
 
 		RegWrite_out	=> EXMEM_RegWrite,
@@ -669,6 +708,7 @@ BEGIN
 		LO_out 			=> EXMEM_LO,	
 		zero_out		=> EXMEM_zero,	
 		datab_out 		=> EXMEM_datab,
+		address_out => EXMEM_address,
 		Rd_out			=> EXMEM_Rd		
 	);
 

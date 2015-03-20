@@ -39,7 +39,6 @@ ENTITY IDEX IS
 		RegDst_out		: OUT STD_LOGIC;
 		ALUsrc_out		: OUT STD_LOGIC;
 		
-		address_out: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
 		readdata1_out	: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
 		readdata2_out	: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
 		signextend_out	: OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -85,7 +84,6 @@ BEGIN
 	RegDst_tmp <= RegDst_in;		
 	ALUsrc_tmp <= ALUsrc_in;		
 	
-	address_tmp <= address_in;
 	readdata1_tmp <= readdata1_in;	
 	readdata2_tmp <= readdata2_in;	
 	signextend_tmp <= signextend_in;	
@@ -108,7 +106,6 @@ begin
 		RegDst_out <= RegDst_tmp;		
 		ALUsrc_out <= ALUsrc_tmp;		
 		
-		address_out <= address_tmp;
 		readdata1_out <= readdata1_tmp;	
 		readdata2_out <= readdata2_tmp;	
 		signextend_out <= signextend_tmp;
