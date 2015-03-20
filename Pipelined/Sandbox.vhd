@@ -278,6 +278,7 @@ architecture behaviour of Sandbox is
 	-- Signals for program counter
 	signal PC_Write : std_logic := '0';
 	signal address_in : std_logic_vector(31 downto 0);
+	signal PCSrcMux : std_logic_vector(31 downto 0);
 	signal PC_address : std_logic_vector(31 downto 0);
 	signal stall : std_logic := '0';
 
@@ -307,7 +308,7 @@ architecture behaviour of Sandbox is
 	signal DataMem_dump 		: std_logic	:= '0';
 	signal DataMem_address		: integer:=0;
 
-  signal RegInit : std_logic :='0';
+  	signal RegInit : std_logic :='0';
 	signal RegWrite	: std_logic;
 	signal MemtoReg	: std_logic;
 	signal Branch	: std_logic;
@@ -318,6 +319,7 @@ architecture behaviour of Sandbox is
 	signal ALUsrc	: std_logic;
 	signal Jump 	: std_logic;
 	signal NotZero 	: std_logic;
+	signal ID_Zero 	: STD_LOGIC;
 	signal LUI		: std_logic;
 
 	signal readdata1	: STD_LOGIC_VECTOR(31 DOWNTO 0);
@@ -433,7 +435,7 @@ BEGIN
 	(
 		clock		=> clk,
 		PC_Write	=> PC_Write,
-		address_in	=> address_in,
+		address_in	=> PCSrcMux,
 		address_out => PC_address
 	);
 
@@ -515,6 +517,21 @@ BEGIN
 		HIout		=> reg_HI
 	);
 
+
+	with (readdata1 = readdata2) select
+		ID_Zero <= '1' when TRUE,
+				'0' when others;
+
+	PCSrc <= Branch AND (ID_zero XOR NotZero); -- select line for branch mux
+	
+	------------------------------
+	-- branch Mux 2-1 Component --
+	------------------------------
+	with PCSrc select
+		PCSrcMux <= 
+			PC_address when '1',
+			address_in when others;
+
 	-----------------
 	-- Sign-extend --
 	-----------------
@@ -585,7 +602,7 @@ BEGIN
 		ALUop_out		=> IDEX_ALUop,
 		RegDst_out		=> IDEX_RegDst,
 		ALUsrc_out		=> IDEX_ALUsrc,
-	  address_out => IDEX_address,
+	  	address_out => IDEX_address,
 		readdata1_out	=> IDEX_readdata1,
 		readdata2_out	=> IDEX_readdata2,
 		signextend_out	=> IDEX_signextend,
@@ -679,17 +696,7 @@ BEGIN
 		shamt => IDEX_signextend(10 downto 6),
 		result 	=> branch_adr
 	);
-	
-	PCSrc <= EXMEM_Branch AND EXMEM_zero; -- select line for branch mux
-	
-	------------------------------
-	-- branch Mux 2-1 Component --
-	------------------------------
-	with PCSrc select
-		address_in <= 
-			PC_address when '0',
-			EXMEM_address when '1',
-			(others => 'X') when others;
+
 	
 	EXMEM_inst: EXMEM PORT MAP
 	(
