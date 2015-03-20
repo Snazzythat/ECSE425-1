@@ -75,10 +75,16 @@ BEGIN
 	HI_tmp <= HI_in;
 	LO_tmp <= LO_in;
 	zero_tmp <= zero_in;
-	datab_tmp <= datab_in;
 
   address_tmp <= address_in;
 	Rd_tmp <= Rd_in;
+
+data_buffer: process(datab_in)
+begin
+	if(datab_in /= "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ") then
+		datab_tmp <= datab_in;
+	end if;
+end process;
 
 IDIF: process (clock)
 begin
