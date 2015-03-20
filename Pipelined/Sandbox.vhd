@@ -352,6 +352,8 @@ architecture behaviour of Sandbox is
 	signal operation : std_logic_vector(3 downto 0);
 	signal writeLOHI : std_logic;
 	signal readLOHI	 : std_logic_vector(1 downto 0);
+	signal readLOHImux : std_logic_vector(31 downto 0);
+
 
 	--ALU signals
 	signal 	dataa 	: STD_LOGIC_VECTOR (31 DOWNTO 0);
@@ -507,8 +509,8 @@ BEGIN
 		readdata_1	=> readdata1,
 		readdata_2	=> readdata2,
 		writeLOHI	=> writeLOHI,
-		LOin		=> ALU_LO,
-		HIin		=> ALU_HI,
+		LOin		=> LO,
+		HIin		=> HI,
 		LOout		=> reg_LO,
 		HIout		=> reg_HI
 	);
@@ -595,7 +597,7 @@ BEGIN
 
 	ALU_Control_inst: ALU_Control PORT MAP
 	(
-		ALUOp		=> ALUop,
+		ALUOp		=> IDEX_ALUop,
 		funct 		=> IDEX_signextend(5 downto 0),
 
 		operation	=> operation,
@@ -656,6 +658,14 @@ BEGIN
 		LO 		=> LO,
 		zero	=> zero
 	);
+
+	-- WriteData Mux 2-1 Component --
+	with readLOHI select
+		readLOHImux <= 
+			result 		when "00",
+			reg_HI 		when "10",
+			reg_LO 		when "11",
+			(others => 'X') when others;
 	
 	------------------------
 	-- ALU Jump Component --
@@ -690,7 +700,7 @@ BEGIN
 		Branch_in		=> IDEX_Branch,
 		MemRead_in		=> IDEX_MemRead,
 		MemWrite_in		=> IDEX_MemWrite,
-		result_in 		=> result,
+		result_in 		=> readLOHImux,
 		HI_in 			=> HI,
 		LO_in 			=> LO,
 		zero_in			=> zero,
