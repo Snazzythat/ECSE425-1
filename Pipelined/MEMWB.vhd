@@ -72,10 +72,10 @@ BEGIN
 	Rd_tmp <= Rd_in;
 
 
-data_buffer: process(datab_in)
+data_buffer: process(data_in)
 begin
-	if(datab_in /= "ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ") then
-		datab_tmp <= datab_in;
+	if(data_in /= "UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU") then
+		data_tmp <= data_in;
 	end if;
 end process;
 
