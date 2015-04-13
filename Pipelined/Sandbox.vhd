@@ -560,9 +560,9 @@ BEGIN
 	  nextPCAdd      => PC_address
 	);
 	
-	------------------------------
-	-- branch Mux 2-1 Component --
-	------------------------------
+	---------------------------------
+	-- Flush IF/ID instruction MUX --
+	---------------------------------
 	with IFID_ifFlush select
 		IFID_instruction <= 
 			"0000000000000000000000000000" when '1',
