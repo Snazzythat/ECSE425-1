@@ -59,6 +59,18 @@ architecture behaviour of Sandbox is
 		instruction_out	: OUT STD_LOGIC_VECTOR (31 DOWNTO 0)
 	);
 	end component;
+  
+  COMPONENT BranchResolution IS
+	PORT(
+	  currPCAdd      : in std_logic_vector  (31 downto 0);
+	  instruction    : in std_logic_vector  (31  downto 0);
+	  regValA        : in std_logic_vector  (31 downto 0);
+	  regValB        : in std_logic_vector  (31 downto 0);
+	  
+	  ifFlush        : out std_logic;
+	  nextPCAdd      : out std_logic_vector (31 downto 0)
+	);
+  END COMPONENT;
 
 	COMPONENT control 
 	PORT (
@@ -332,7 +344,9 @@ architecture behaviour of Sandbox is
 	signal IFID_Write		: std_logic;
 	signal IFID_address		: std_logic_vector  (31 DOWNTO 0);
 	signal IFID_instruction	: std_logic_vector  (31 DOWNTO 0);
-
+	
+	signal IFID_ifFlush : std_logic;
+	
 	signal IDEX_RegWrite : std_logic;
 	signal IDEX_MemtoReg : std_logic;
 	signal IDEX_Branch	 : std_logic;
@@ -531,7 +545,29 @@ BEGIN
 		PCSrcMux <= 
 			PC_address when '1',
 			address_in when others;
-
+			
+	-----------------------
+	-- branch resolution --
+	-----------------------
+	resolveBranch : BranchResolution
+	PORT MAP (		
+    currPCAdd      => IFID_address (31 downto 0),
+	  instruction    => IFID_instruction	(31 downto 0),
+	  regValA        => readdata1,
+	  regValB        => readdata2,
+	  
+	  ifFlush        => IFID_ifFlush,
+	  nextPCAdd      => PC_address
+	);
+	
+	------------------------------
+	-- branch Mux 2-1 Component --
+	------------------------------
+	with IFID_ifFlush select
+		IFID_instruction <= 
+			"0000000000000000000000000000" when '1',
+			InstMem_data when others;
+			
 	-----------------
 	-- Sign-extend --
 	-----------------
