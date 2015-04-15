@@ -12,9 +12,9 @@ Bellow are the instructions you need to follow to run each optimizatiion techniq
 
 Run the Branch Predictor
 Instructions
-Create a new project in ModelSim and add .vhd files that the branch-predictor folder contains i.e.
+1.Create a new project in ModelSim and add .vhd files that the branch-predictor folder 2.contains i.e.
 	1. tb_branch_predictor.vhdl
 	2. branchPredictor.vhdl
 
-Compile all files and start simulation on the “tb_branch_perdictor.vhdl”
+3.Compile all files and start simulation on the “tb_branch_perdictor.vhdl”
 
