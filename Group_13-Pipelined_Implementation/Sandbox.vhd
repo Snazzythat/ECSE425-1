@@ -102,6 +102,7 @@ architecture behaviour of Sandbox is
 	PORT
 	(
 		IDEX_MemRead : in std_logic;
+		Branch : in std_logic;
 		IDEX_RegRt : in std_logic_vector(4 downto 0);
 		IFID_RegRs : in std_logic_vector(4 downto 0);
 		IFID_RegRt : in std_logic_vector(4 downto 0);
@@ -182,6 +183,22 @@ architecture behaviour of Sandbox is
 		zero	: OUT STD_LOGIC
 	);
 	END component;
+
+	component BranchFwdUnit IS
+	PORT
+	(
+		forwardBranchA : out std_logic_vector(1 downto 0);
+		forwardBranchB : out std_logic_vector(1 downto 0);
+		Branch : in std_logic;
+		IFID_RegRs : in std_logic_vector(4 downto 0);
+		IFID_RegRt : in std_logic_vector(4 downto 0);
+		EXMEM_RegWrite : in std_logic;
+		EXMEM_RegRd : in std_logic_vector(4 downto 0);
+		MEMWB_RegWrite : in std_logic;
+		MEMWB_RegRd : in std_logic_vector(4 downto 0)
+		
+	);
+	end component;
 
 	component ForwardUnit IS
 	PORT
@@ -413,6 +430,11 @@ architecture behaviour of Sandbox is
 	signal reg_LO : std_logic_vector(31 downto 0);
 	signal hazard_control : std_logic_vector(9 downto 0);
 
+	signal branchforwardA : std_logic_vector(1 downto 0);
+	signal branchforwardB : std_logic_vector(1 downto 0);
+	signal branch_data_a : std_logic_vector(31 downto 0);
+	signal branch_data_b : std_logic_vector(31 downto 0);
+
 BEGIN
 
  -- Clock process definitions
@@ -469,11 +491,11 @@ BEGIN
 			dump 		=> InstMem_dump
         );
 
-	IF_Flush <= Branch OR Jump;
+	IF_Flush <= (PCSrc or Jump) and not(stall);
 	IFID_inst: IFID PORT MAP
 	(
 		clock			=> clk,
-		IFID_Write		=> '1',--IFID_Write,
+		IFID_Write		=> IFID_Write,
 		address_in		=> address_in,
 		instruction_in	=> InstMem_data,
 		IF_Flush 		=> IF_Flush,
@@ -522,8 +544,21 @@ BEGIN
 		HIout		=> reg_HI
 	);
 
+		--MUX for Data A
+	WITH branchforwardA SELECT
+		branch_data_a <=
+			MemtoRegMux				WHEN "01",
+			EXMEM_result			WHEN "10",
+			readdata1		WHEN OTHERS;
+	
+	--MUX for Data B
+	WITH branchforwardB SELECT
+		branch_data_b <=
+			MemtoRegMux				WHEN "01",
+			EXMEM_result			WHEN "10",
+			readdata2		WHEN OTHERS;
 
-	with (readdata1 = readdata2) select
+	with (branch_data_a = branch_data_b) select
 		ID_Zero <= '1' when TRUE,
 				'0' when others;
 
@@ -539,6 +574,7 @@ BEGIN
 		shamt => IFID_instruction(10 downto 6),
 		result 	=> branch_adr
 	);
+
 
 	PCSrc <= Branch AND (ID_zero XOR NotZero); -- select line for branch mux
 	
@@ -587,7 +623,8 @@ BEGIN
 	PORT MAP
 	(
 		IDEX_MemRead=> IDEX_MemRead,
-		IDEX_RegRt 	=> Rt,
+		Branch      => Branch,
+		IDEX_RegRt 	=> IDEX_Rt,
 		IFID_RegRs 	=> Rs,
 		IFID_RegRt 	=> Rt,
 		IFID_Write 	=> IFID_Write,
@@ -650,6 +687,20 @@ BEGIN
 		readLOHI	=> readLOHI	
 	);
 
+	BranchFwdUnit_inst : BranchFwdUnit port map
+	(
+		branchforwardA,
+		branchforwardB,
+		Branch,
+		Rs,
+		Rt,
+		EXMEM_RegWrite,
+		EXMEM_Rd,
+		MEMWB_RegWrite,
+		MEMWB_Rd
+		
+	);
+
 	ForwardUnit_inst: ForwardUnit PORT MAP
 	(
 		IDEX_RegRs 		=> IDEX_Rs,
@@ -658,7 +709,6 @@ BEGIN
 		EXMEM_RegRd 	=> EXMEM_Rd,
 		MEMWB_RegWrite 	=> MEMWB_RegWrite,
 		MEMWB_RegRd 	=> MEMWB_Rd,
-
 		forwardA 		=> forwardA,
 		forwardB 		=> forwardB
 	);

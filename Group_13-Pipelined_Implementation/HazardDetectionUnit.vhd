@@ -6,6 +6,7 @@ ENTITY HazardDetectionUnit IS
 	PORT
 	(
 		IDEX_MemRead : in std_logic;
+		Branch : in std_logic;
 		IDEX_RegRt : in std_logic_vector(4 downto 0);
 		IFID_RegRs : in std_logic_vector(4 downto 0);
 		IFID_RegRt : in std_logic_vector(4 downto 0);
@@ -19,15 +20,15 @@ ARCHITECTURE ARCH OF HazardDetectionUnit IS
 
 BEGIN
 
-Hazard: process (IDEX_MemRead,IDEX_RegRt,IFID_RegRs,IFID_RegRt)
+Hazard: process (IDEX_MemRead,Branch,IDEX_RegRt,IFID_RegRs,IFID_RegRt)
 begin
 	IFID_Write <= '1';
 	PC_Write <= '1';
 	stall <= '0';
 
-	if(IDEX_MemRead = '1' and
+	if((IDEX_MemRead = '1' or Branch='1') and
 		((IDEX_RegRt = IFID_RegRs) or
-		 (IDEX_RegRt = IFID_RegRt))) then
+		 (IDEX_RegRt = IFID_RegRt))) and (IDEX_RegRt /="00000") then
 			IFID_Write <= '0';
 			PC_Write <= '0';
 			stall <= '1';

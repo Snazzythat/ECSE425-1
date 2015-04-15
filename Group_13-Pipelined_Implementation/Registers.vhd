@@ -38,7 +38,6 @@ architecture behaviour of registers is
 	-- Register 33: HI
 begin
 
-	regs(0) <= x"00000000";
 	reg_process: process (clock)
 	begin
 		if (clock'event AND clock = '1') then
@@ -54,6 +53,8 @@ begin
 				regs(32) <= LOin;
 				regs(33) <= HIin;
 			end if;
+
+			regs(0) <= "00000000000000000000000000000000";
 		end if;
 	end process;
 	
